@@ -65,3 +65,13 @@ class Cell(object):
     def __repr__(self):
         return "%d, %s" % (self.algae, self.foram)
 
+
+def environment_factory():
+    e = [None]
+
+    def environ():
+        if e[0] is None:
+            e[0] = Environment()
+        return e[0]
+
+    return environ

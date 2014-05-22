@@ -75,3 +75,24 @@ class PlottingStatistics(Statistics):
             bbox=dict(boxstyle='round,pad=0.2', fc='yellow', alpha=0.5),
             arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0'))
 
+
+class CsvStatistics(Statistics):
+    @Inject("environment")
+    def __init__(self):
+        super(CsvStatistics, self).__init__()
+
+    def update(self, step_count, agents):
+        with open('forams.log', 'ab') as file:
+            file.write("%s,%s\n" % (step_count, self._get_forams_count(self.environment.grid)))
+
+    def summarize(self, agents):
+        pass
+
+
+    def _get_forams_count(self, grid):
+        forams = 0
+        for row in grid:
+            for cell in row:
+                if not cell.is_empty():
+                    forams += 1
+        return forams

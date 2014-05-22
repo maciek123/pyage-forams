@@ -1,4 +1,5 @@
 import logging
+from random import random
 
 from pyage.core.address import Addressable
 from pyage.core.inject import Inject
@@ -52,14 +53,15 @@ class Foram(Addressable):
             return
         logger.debug("foram! %s" % self.steps)
         self.steps += 1
+        if self._should_die():
+            self._die()
+            return
         if self._eat() <= 0:
             self._move()
         if self._can_reproduce():
             self._reproduce()
         if self._can_create_chamber():
             self._create_chamber()
-        if self._should_die():
-            self._die()
 
     def _eat(self):
         e = self.energy
@@ -106,7 +108,7 @@ class Foram(Addressable):
             logger.debug(self.cell.neighbours)
             logger.debug(empty_neighbours)
             cell = max(empty_neighbours,
-                       key=lambda c: c.available_food() + sum(s.available_food() for s in c.neighbours))
+                       key=lambda c: random() + c.available_food() + sum(s.available_food() for s in c.neighbours))
             if cell:
                 cell.insert_foram(self.cell.remove_foram())
                 self.energy -= 0.25
