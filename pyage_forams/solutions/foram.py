@@ -4,6 +4,7 @@ from random import random
 from pyage.core.address import Addressable
 from pyage.core.inject import Inject
 from pyage_forams.solutions.genom import Genom
+from pyage_forams.utils import counted
 
 
 logger = logging.getLogger(__name__)
@@ -90,6 +91,7 @@ class Foram(Addressable):
     def _can_reproduce(self):
         return self.energy > 10 and self.genom.chambers_limit <= self.chambers
 
+    @counted
     def _reproduce(self):
         logger.debug("%s is reproducing" % self)
         empty_neighbours = filter(lambda c: c.is_empty(), self.cell.neighbours)

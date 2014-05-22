@@ -1,3 +1,4 @@
+from __future__ import print_function
 from datetime import datetime
 import itertools
 from subprocess import Popen
@@ -6,6 +7,7 @@ import matplotlib.pyplot as plt
 
 from pyage.core.inject import Inject
 from pyage.core.statistics import Statistics
+from pyage_forams.solutions.foram import Foram
 
 
 class PlottingStatistics(Statistics):
@@ -78,21 +80,27 @@ class PlottingStatistics(Statistics):
 
 class CsvStatistics(Statistics):
     @Inject("environment")
-    def __init__(self):
+    def __init__(self, interval=1, filename=None):
         super(CsvStatistics, self).__init__()
+        self.interval = interval
+        self.filename = "forams=%s.log" % datetime.now().strftime("%Y%m%d_%H%M%S") if filename is None else filename
 
     def update(self, step_count, agents):
-        with open('forams.log', 'ab') as file:
-            file.write("%s,%s\n" % (step_count, self._get_forams_count(self.environment.grid)))
+        if step_count % self.interval == 0:
+            with open(self.filename, 'ab') as f:
+                entry = self._get_entry(agents, step_count)
+                print((",".join(map(str, entry))), file=f)
 
     def summarize(self, agents):
         pass
 
+    def _get_entry(self, agents, step_count):
+        forams_count = len(agents[0].forams)
+        entry = [step_count, forams_count,
+                 sum(f.chambers for f in agents[0].forams.values()) / float(forams_count) if forams_count > 0 else 0,
+                 sum(c.algae for row in self.environment.grid for c in row),
+                 Foram._reproduce.called]
+        return entry
 
-    def _get_forams_count(self, grid):
-        forams = 0
-        for row in grid:
-            for cell in row:
-                if not cell.is_empty():
-                    forams += 1
-        return forams
+
+
