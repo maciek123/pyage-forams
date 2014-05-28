@@ -21,4 +21,4 @@ environment = environment_factory()
 stop_condition = lambda: StepLimitStopCondition(90)
 
 address_provider = address.SequenceAddressProvider
-stats = CsvStatistics
+stats = lambda: CsvStatistics(interval=100)
