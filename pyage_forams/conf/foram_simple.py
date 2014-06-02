@@ -16,7 +16,7 @@ agents = create_agent
 thermometer = Thermometer
 size = lambda: 20
 
-environment = environment_factory()
+environment = environment_factory(regeneration_factor=0.1)
 
 stop_condition = lambda: StepLimitStopCondition(90)
 

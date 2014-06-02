@@ -5,8 +5,9 @@ from pyage.core.inject import Inject
 
 class Environment(object):
     @Inject("thermometer", "size")
-    def __init__(self):
+    def __init__(self, regeneration_factor):
         super(Environment, self).__init__()
+        self.regeneration_factor = regeneration_factor
         self.grid = self._initialize_grid()
 
     def _initialize_grid(self):
@@ -25,7 +26,7 @@ class Environment(object):
         for row in self.grid:
             for cell in row:
                 if cell.algae > 0:
-                    cell.algae += 0.1
+                    cell.algae += self.regeneration_factor
         while random() > 0.4:
             try:
                 choice(filter(lambda c: c.is_empty(), choice(self.grid))).algae += 1 + random() * 2
@@ -66,12 +67,12 @@ class Cell(object):
         return "%d, %s" % (self.algae, self.foram)
 
 
-def environment_factory():
+def environment_factory(regeneration_factor=0.1):
     e = [None]
 
     def environ():
         if e[0] is None:
-            e[0] = Environment()
+            e[0] = Environment(regeneration_factor)
         return e[0]
 
     return environ
