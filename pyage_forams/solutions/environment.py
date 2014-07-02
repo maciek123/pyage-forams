@@ -3,10 +3,25 @@ from random import randint, choice, random
 from pyage.core.inject import Inject
 
 
-class Environment(object):
+class AbstractEnvironment(object):
+    def add_foram(self, foram):
+        choice(filter(lambda c: c.is_empty(), self.get_all_cells())).insert_foram(foram)
+
+    def tick(self):
+        for cell in self.get_all_cells():
+            if cell.algae > 0:
+                cell.algae += self.regeneration_factor
+        while random() > 0.4:
+            try:
+                choice(filter(lambda c: c.is_empty(), self.get_all_cells())).algae += 1 + random() * 2
+            except:
+                pass
+
+
+class Environment2d(AbstractEnvironment):
     @Inject("thermometer", "size")
     def __init__(self, regeneration_factor):
-        super(Environment, self).__init__()
+        super(Environment2d, self).__init__()
         self.regeneration_factor = regeneration_factor
         self.grid = self._initialize_grid()
 
@@ -15,23 +30,36 @@ class Environment(object):
         for i in range(self.size):
             for j in range(self.size):
                 grid[i][j].neighbours.extend([grid[x][y] for x in range(max(0, i - 1), min(self.size, i + 2)) for y in
-                                              range(max(0, j - 1), min(self.size, j + 2)) if x != i or j != j])
+                                              range(max(0, j - 1), min(self.size, j + 2)) if x != i or y != j])
 
         return grid
 
-    def add_foram(self, foram):
-        choice(filter(lambda c: c.is_empty(), [cell for sublist in self.grid for cell in sublist])).insert_foram(foram)
+    def get_all_cells(self):
+        return [cell for sublist in self.grid for cell in sublist]
 
-    def tick(self):
-        for row in self.grid:
-            for cell in row:
-                if cell.algae > 0:
-                    cell.algae += self.regeneration_factor
-        while random() > 0.4:
-            try:
-                choice(filter(lambda c: c.is_empty(), choice(self.grid))).algae += 1 + random() * 2
-            except:
-                pass
+
+class Environment3d(AbstractEnvironment):
+    @Inject("thermometer", "size")
+    def __init__(self, regeneration_factor):
+        super(Environment3d, self).__init__()
+        self.regeneration_factor = regeneration_factor
+        self.grid = self._initialize_grid()
+
+    def _initialize_grid(self):
+        grid = [[[Cell(randint(1, 4) if random() > 0.7 else 0)
+                  for _ in range(self.size)] for _ in range(self.size)] for _ in range(self.size)]
+        for i in range(self.size):
+            for j in range(self.size):
+                for k in range(self.size):
+                    grid[i][j][k].neighbours.extend(
+                        [grid[x][y][z] for x in range(max(0, i - 1), min(self.size, i + 2)) for y in
+                         range(max(0, j - 1), min(self.size, j + 2)) for z in
+                         range(max(0, k - 1), min(self.size, k + 2)) if x != i or y != j or z != k])
+
+        return grid
+
+    def get_all_cells(self):
+        return [cell for plane in self.grid for sublist in plane for cell in sublist]
 
 
 class Cell(object):
@@ -67,12 +95,12 @@ class Cell(object):
         return "%d, %s" % (self.algae, self.foram)
 
 
-def environment_factory(regeneration_factor=0.1):
+def environment_factory(regeneration_factor=0.1, clazz=Environment2d):
     e = [None]
 
     def environ():
         if e[0] is None:
-            e[0] = Environment(regeneration_factor)
+            e[0] = clazz(regeneration_factor)
         return e[0]
 
     return environ

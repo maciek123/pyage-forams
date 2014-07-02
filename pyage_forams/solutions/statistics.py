@@ -1,6 +1,7 @@
 from __future__ import print_function
 from datetime import datetime
 import itertools
+import logging
 from subprocess import Popen
 
 import matplotlib.pyplot as plt
@@ -8,6 +9,9 @@ import matplotlib.pyplot as plt
 from pyage.core.inject import Inject
 from pyage.core.statistics import Statistics
 from pyage_forams.solutions.foram import Foram
+
+
+logger = logging.getLogger(__name__)
 
 
 class PlottingStatistics(Statistics):
@@ -103,4 +107,11 @@ class CsvStatistics(Statistics):
         return entry
 
 
+class SimpleStatistics(Statistics):
+    @Inject("environment")
+    def __init__(self):
+        super(SimpleStatistics, self).__init__()
 
+    def update(self, step_count, agents):
+        if step_count % 15 == 0:
+            logger.info(self.environment.grid)
