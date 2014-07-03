@@ -1,4 +1,5 @@
 from unittest import TestCase
+from pyage.core import inject
 from pyage_forams.solutions.foram import Foram
 
 __author__ = 'makz'
@@ -6,5 +7,6 @@ __author__ = 'makz'
 
 class TestForam(TestCase):
     def test_step(self):
-        foram = Foram()
-        foram.step()
+        inject.config = "pyage_forams.conf.dummy_conf"
+        foram = Foram(10)
+        # foram.step()
