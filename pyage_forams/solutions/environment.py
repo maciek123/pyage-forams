@@ -35,7 +35,9 @@ class Environment2d(AbstractEnvironment):
         return grid
 
     def get_all_cells(self):
-        return [cell for sublist in self.grid for cell in sublist]
+        for row in self.grid:
+            for cell in row:
+                yield cell
 
 
 class Environment3d(AbstractEnvironment):
@@ -59,7 +61,10 @@ class Environment3d(AbstractEnvironment):
         return grid
 
     def get_all_cells(self):
-        return [cell for plane in self.grid for sublist in plane for cell in sublist]
+        for plane in self.grid:
+            for row in plane:
+                for cell in row:
+                    yield cell
 
 
 class Cell(object):

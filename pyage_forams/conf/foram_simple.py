@@ -2,12 +2,13 @@
 
 from pyage.core import address
 
+from pyage.core.statistics import NoStatistics
 from pyage.core.stop_condition import StepLimitStopCondition
 from pyage_forams.solutions.environment import environment_factory, Environment3d
 from pyage_forams.solutions.foram import create_forams, create_agent
 from pyage_forams.solutions.genom import GenomFactory
-from pyage_forams.solutions.statistics import PlottingStatistics, CsvStatistics, SimpleStatistics
 from pyage_forams.solutions.thermometer import Thermometer
+
 
 factory = GenomFactory(chambers_limit=5)
 genom_factory = lambda: factory.generate
@@ -21,4 +22,4 @@ environment = environment_factory(regeneration_factor=0.1, clazz=Environment3d)
 stop_condition = lambda: StepLimitStopCondition(90)
 
 address_provider = address.SequenceAddressProvider
-stats = SimpleStatistics
+stats = NoStatistics
