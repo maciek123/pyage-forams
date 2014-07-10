@@ -19,7 +19,7 @@ class AbstractEnvironment(object):
 
 
 class Environment2d(AbstractEnvironment):
-    @Inject("thermometer", "size")
+    @Inject("size")
     def __init__(self, regeneration_factor):
         super(Environment2d, self).__init__()
         self.regeneration_factor = regeneration_factor
@@ -41,7 +41,7 @@ class Environment2d(AbstractEnvironment):
 
 
 class Environment3d(AbstractEnvironment):
-    @Inject("thermometer", "size")
+    @Inject("size")
     def __init__(self, regeneration_factor):
         super(Environment3d, self).__init__()
         self.regeneration_factor = regeneration_factor
@@ -53,6 +53,7 @@ class Environment3d(AbstractEnvironment):
         for i in range(self.size):
             for j in range(self.size):
                 for k in range(self.size):
+                    grid[i][j][k].depth = i
                     grid[i][j][k].neighbours.extend(
                         [grid[x][y][z] for x in range(max(0, i - 1), min(self.size, i + 2)) for y in
                          range(max(0, j - 1), min(self.size, j + 2)) for z in

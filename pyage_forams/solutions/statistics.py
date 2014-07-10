@@ -108,10 +108,15 @@ class CsvStatistics(Statistics):
 
 
 class SimpleStatistics(Statistics):
-    @Inject("environment")
+    @Inject("environment", "insolation_meter")
     def __init__(self):
         super(SimpleStatistics, self).__init__()
 
     def update(self, step_count, agents):
         if step_count % 15 == 0:
             logger.info(self.environment.grid)
+
+    def summarize(self, agents):
+        for cell in self.environment.get_all_cells():
+            logger.info("%f %f" % (cell.depth, self.insolation_meter.get_insolation(cell)))
+

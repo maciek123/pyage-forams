@@ -35,7 +35,7 @@ class ForamAggregateAgent(Addressable):
 
 
 class Foram(Addressable):
-    @Inject("genom_factory", "thermometer")
+    @Inject("genom_factory")
     def __init__(self, energy, genom=None):
         super(Foram, self).__init__()
         self.energy = energy
