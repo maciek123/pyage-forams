@@ -4,13 +4,18 @@ from pyage.core.inject import Inject
 
 
 class AbstractEnvironment(object):
+    @Inject("insolation_meter")
+    def __init__(self, regeneration_factor):
+        super(AbstractEnvironment, self).__init__()
+        self.regeneration_factor = regeneration_factor
+
     def add_foram(self, foram):
         choice(filter(lambda c: c.is_empty(), self.get_all_cells())).insert_foram(foram)
 
     def tick(self):
         for cell in self.get_all_cells():
             if cell.algae > 0:
-                cell.algae += self.regeneration_factor
+                cell.algae += self.regeneration_factor + self.insolation_meter.get_insolation(cell)
         while random() > 0.4:
             try:
                 choice(filter(lambda c: c.is_empty(), self.get_all_cells())).algae += 1 + random() * 2
@@ -21,8 +26,7 @@ class AbstractEnvironment(object):
 class Environment2d(AbstractEnvironment):
     @Inject("size")
     def __init__(self, regeneration_factor):
-        super(Environment2d, self).__init__()
-        self.regeneration_factor = regeneration_factor
+        super(Environment2d, self).__init__(regeneration_factor)
         self.grid = self._initialize_grid()
 
     def _initialize_grid(self):
@@ -43,8 +47,7 @@ class Environment2d(AbstractEnvironment):
 class Environment3d(AbstractEnvironment):
     @Inject("size")
     def __init__(self, regeneration_factor):
-        super(Environment3d, self).__init__()
-        self.regeneration_factor = regeneration_factor
+        super(Environment3d, self).__init__(regeneration_factor)
         self.grid = self._initialize_grid()
 
     def _initialize_grid(self):

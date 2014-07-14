@@ -117,6 +117,5 @@ class SimpleStatistics(Statistics):
             logger.info(self.environment.grid)
 
     def summarize(self, agents):
-        for cell in self.environment.get_all_cells():
-            logger.info("%f %f" % (cell.depth, self.insolation_meter.get_insolation(cell)))
+        logger.debug("done")
 
