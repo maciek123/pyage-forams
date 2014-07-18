@@ -107,6 +107,55 @@ class CsvStatistics(Statistics):
         return entry
 
 
+class PsiStatistics(Statistics):
+    @Inject("environment")
+    def __init__(self, filename=None):
+        super(PsiStatistics, self).__init__()
+        self._column_names = ['"x"', '"y"', '"z"', '"Foram"', '"Algae"']
+        self._column_symbols = ['"F"', '"A"']
+        self._column_types = ['"float"', '"float"']
+        filename = "forams-%s.psi" % datetime.now().strftime("%Y%m%d_%H%M%S") if filename is None else filename
+        self.f = open(filename, 'w')
+
+    def update(self, step_count, agents):
+        pass
+
+    def summarize(self, agents):
+        self._add_header()
+        self._add_data()
+
+    def _add_header(self):
+        self.f.write('# PSI Format 1.0\n#\n')
+        self._add_column_names()
+        self._add_column_symbols()
+        self._add_column_types()
+        self.f.write('10000 2694 115001\n1.00 0.00 0.00\n0.00 1.00 0.00\n0.00 0.00 1.00\n\n')
+
+    def _add_data(self):
+        for x in range(len(self.environment.grid)):
+            for y in range(len(self.environment.grid[x])):
+                for z in range(len(self.environment.grid[x][y])):
+                    self.f.write(' '.join(map(str, self._get_entry(x, y, z))) + '\n')
+
+
+    def _get_entry(self, x, y, z):
+        cell = self.environment.grid[x][y][z]
+        entry = [x, y, z, 0 if cell.is_empty() else cell.foram.chambers, cell.algae]
+        return entry
+
+    def _add_column_names(self):
+        names = (['# column[%d] = %s' % (i, n) for i, n in enumerate(self._column_names)])
+        self.f.write('\n'.join(names) + '\n')
+
+    def _add_column_symbols(self):
+        symbols = ['# symbol[%d] = %s' % (i + 3, s) for i, s in enumerate(self._column_symbols)]
+        self.f.write('\n'.join(symbols) + '\n')
+
+    def _add_column_types(self):
+        types = ['# type[%d] = %s' % (i + 3, t) for i, t in enumerate(self._column_types)]
+        self.f.write('\n'.join(types) + '\n')
+
+
 class SimpleStatistics(Statistics):
     @Inject("environment", "insolation_meter")
     def __init__(self):
