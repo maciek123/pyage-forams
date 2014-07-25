@@ -1,4 +1,5 @@
 from __future__ import print_function
+from compiler.ast import flatten
 from datetime import datetime
 import itertools
 import logging
@@ -129,7 +130,11 @@ class PsiStatistics(Statistics):
         self._add_column_names()
         self._add_column_symbols()
         self._add_column_types()
-        self.f.write('10000 2694 115001\n1.00 0.00 0.00\n0.00 1.00 0.00\n0.00 0.00 1.00\n\n')
+        self.f.write('%d 2694 115001\n'
+                     '1.00 0.00 0.00\n'
+                     '0.00 1.00 0.00\n'
+                     '0.00 0.00 1.00\n\n'
+                     % len(flatten(self.environment.grid)))
 
     def _add_data(self):
         for x in range(len(self.environment.grid)):
@@ -137,11 +142,9 @@ class PsiStatistics(Statistics):
                 for z in range(len(self.environment.grid[x][y])):
                     self.f.write(' '.join(map(str, self._get_entry(x, y, z))) + '\n')
 
-
     def _get_entry(self, x, y, z):
         cell = self.environment.grid[x][y][z]
-        entry = [x, y, z, 0 if cell.is_empty() else cell.foram.chambers, cell.algae]
-        return entry
+        return [x, y, z] + map(float, [0 if cell.is_empty() else cell.foram.chambers, cell.algae])
 
     def _add_column_names(self):
         names = (['# column[%d] = %s' % (i, n) for i, n in enumerate(self._column_names)])
