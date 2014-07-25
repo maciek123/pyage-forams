@@ -144,7 +144,9 @@ class PsiStatistics(Statistics):
 
     def _get_entry(self, x, y, z):
         cell = self.environment.grid[x][y][z]
-        return [x, y, z] + map(float, [0 if cell.is_empty() else cell.foram.chambers, cell.algae])
+        return [x, y, z] + map(float, [0 if cell.is_empty() else cell.foram.chambers,
+                                       cell.algae,
+                                       self.environment.insolation_meter.get_insolation(cell)])
 
     def _add_column_names(self):
         names = (['# column[%d] = %s' % (i, n) for i, n in enumerate(self._column_names)])
