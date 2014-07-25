@@ -109,12 +109,12 @@ class CsvStatistics(Statistics):
 
 
 class PsiStatistics(Statistics):
-    @Inject("environment")
+    @Inject("environment", "insolation_meter")
     def __init__(self, filename=None):
         super(PsiStatistics, self).__init__()
-        self._column_names = ['"x"', '"y"', '"z"', '"Foram"', '"Algae"']
-        self._column_symbols = ['"F"', '"A"']
-        self._column_types = ['"float"', '"float"']
+        self._column_names = ['"x"', '"y"', '"z"', '"Foram"', '"Algae"', '"Insolation"']
+        self._column_symbols = ['"F"', '"A"', '"I"']
+        self._column_types = ['"float"', '"float"', '"float"']
         filename = "forams-%s.psi" % datetime.now().strftime("%Y%m%d_%H%M%S") if filename is None else filename
         self.f = open(filename, 'w')
 
@@ -146,7 +146,7 @@ class PsiStatistics(Statistics):
         cell = self.environment.grid[x][y][z]
         return [x, y, z] + map(float, [0 if cell.is_empty() else cell.foram.chambers,
                                        cell.algae,
-                                       self.environment.insolation_meter.get_insolation(cell)])
+                                       self.insolation_meter.get_insolation(cell)])
 
     def _add_column_names(self):
         names = (['# column[%d] = %s' % (i, n) for i, n in enumerate(self._column_names)])
