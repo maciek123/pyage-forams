@@ -144,7 +144,7 @@ class PsiStatistics(Statistics):
 
     def _get_entry(self, x, y, z):
         cell = self.environment.grid[x][y][z]
-        return [x, y, z] + map(float, [0 if cell.is_empty() else cell.foram.chambers,
+        return map(float, [x, y, z] + [0 if cell.is_empty() else cell.foram.chambers,
                                        cell.algae,
                                        self.insolation_meter.get_insolation(cell)])
 
