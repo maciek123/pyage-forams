@@ -123,10 +123,9 @@ class PsiStatistics(Statistics):
         if step_count % self.interval == 0:
             self.counter += 1
             new_filename = '%s%s.psi' % (self.filename, '%06d' % self.counter)
-            f = open(new_filename, 'w')
-            self._add_header(f)
-            self._add_data(f)
-            f.close()
+            with open(new_filename, 'w') as f:
+                self._add_header(f)
+                self._add_data(f)
 
     def summarize(self, agents):
         pass
