@@ -1,5 +1,5 @@
 # coding=utf-8
-
+import Pyro4
 from pyage.core import address
 
 from pyage.core.stop_condition import StepLimitStopCondition
@@ -23,3 +23,7 @@ stop_condition = lambda: StepLimitStopCondition(90)
 
 address_provider = address.SequenceAddressProvider
 stats = SimpleStatistics
+
+ns_hostname = lambda: "127.0.0.1"
+pyro_daemon = Pyro4.Daemon()
+daemon = lambda: pyro_daemon

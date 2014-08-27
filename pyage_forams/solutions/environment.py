@@ -1,6 +1,11 @@
+import logging
 from random import randint, choice, random
 
+from pyage.core.address import Addressable
 from pyage.core.inject import Inject
+
+
+logger = logging.getLogger(__name__)
 
 
 class AbstractEnvironment(object):
@@ -22,6 +27,19 @@ class AbstractEnvironment(object):
             except:
                 pass
 
+    def get_cell(self, address):
+        for cell in self.get_all_cells():
+            if cell.get_address() == address:
+                return cell
+
+    def add_neighbour(self, cell_address, neighbour):
+        self.get_cell(cell_address).add_neighbour(neighbour)
+
+    def join(self, cells):
+        cell = self.get_all_cells().next()
+        cell.add_neighbour(cells[0])
+        return [cell]
+
 
 class Environment2d(AbstractEnvironment):
     @Inject("size")
@@ -33,9 +51,8 @@ class Environment2d(AbstractEnvironment):
         grid = [[Cell(randint(0, 4) if random() > 0.7 else 0) for _ in range(self.size)] for _ in range(self.size)]
         for i in range(self.size):
             for j in range(self.size):
-                grid[i][j].neighbours.extend([grid[x][y] for x in range(max(0, i - 1), min(self.size, i + 2)) for y in
-                                              range(max(0, j - 1), min(self.size, j + 2)) if x != i or y != j])
-
+                grid[i][j]._neighbours.extend([grid[x][y] for x in range(max(0, i - 1), min(self.size, i + 2)) for y in
+                                               range(max(0, j - 1), min(self.size, j + 2)) if x != i or y != j])
         return grid
 
     def get_all_cells(self):
@@ -57,7 +74,7 @@ class Environment3d(AbstractEnvironment):
             for j in range(self.size):
                 for k in range(self.size):
                     grid[i][j][k].depth = i
-                    grid[i][j][k].neighbours.extend(
+                    grid[i][j][k]._neighbours.extend(
                         [grid[x][y][z] for x in range(max(0, i - 1), min(self.size, i + 2)) for y in
                          range(max(0, j - 1), min(self.size, j + 2)) for z in
                          range(max(0, k - 1), min(self.size, k + 2)) if x != i or y != j or z != k])
@@ -71,14 +88,15 @@ class Environment3d(AbstractEnvironment):
                     yield cell
 
 
-class Cell(object):
+class Cell(Addressable):
     def __init__(self, algae=0):
         super(Cell, self).__init__()
         self.algae = algae
         self.foram = None
-        self.neighbours = []
+        self._neighbours = []
 
     def insert_foram(self, foram):
+        logging.info("inserting %s into %s" % (foram, self))
         if not self.is_empty():
             raise ValueError("cannot insert foram to already occupied cell")
         self.foram = foram
@@ -86,6 +104,7 @@ class Cell(object):
 
     def remove_foram(self):
         foram = self.foram
+        foram.cell = None
         self.foram = None
         return foram
 
@@ -98,10 +117,16 @@ class Cell(object):
         return to_let
 
     def available_food(self):
-        return self.algae + sum(map(lambda c: c.algae, self.neighbours))
+        return self.algae + sum(map(lambda c: c.algae, self._neighbours))
+
+    def add_neighbour(self, cell):
+        self._neighbours.append(cell)
+
+    def get_neighbours(self):
+        return self._neighbours
 
     def __repr__(self):
-        return "%d, %s" % (self.algae, self.foram)
+        return "(%d, %s, %d)" % (self.algae, self.foram, self.available_food())
 
 
 def environment_factory(regeneration_factor=0.1, clazz=Environment2d):

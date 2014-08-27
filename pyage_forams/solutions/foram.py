@@ -3,35 +3,12 @@ from random import random
 
 from pyage.core.address import Addressable
 from pyage.core.inject import Inject
+from pyage_forams.solutions.agent.aggregate import ForamAggregateAgent
 from pyage_forams.solutions.genom import Genom
 from pyage_forams.utils import counted
 
 
 logger = logging.getLogger(__name__)
-
-
-class ForamAggregateAgent(Addressable):
-    @Inject("forams", "environment")
-    def __init__(self):
-        super(ForamAggregateAgent, self).__init__()
-        for foram in self.forams.values():
-            foram.parent = self
-            self.environment.add_foram(foram)
-
-    def step(self):
-        for foram in self.forams.values():
-            foram.step()
-        self.environment.tick()
-
-    def remove_foram(self, address):
-        foram = self.forams[address]
-        del self.forams[address]
-        foram.parent = None
-        return foram
-
-    def add_foram(self, foram):
-        foram.parent = self
-        self.forams[foram.get_address()] = foram
 
 
 class Foram(Addressable):
@@ -49,6 +26,7 @@ class Foram(Addressable):
         self.cell = None
 
     def step(self):
+        logger.info("step %s", self.get_address())
         if not self.alive:
             logger.warn("called step on dead foram")
             return
@@ -57,10 +35,10 @@ class Foram(Addressable):
         if self._should_die():
             self._die()
             return
-        if self._eat() <= 0:
-            self._move()
         if self._can_reproduce():
             self._reproduce()
+        if self._eat() <= 0:
+            self._move()
         if self._can_create_chamber():
             self._create_chamber()
 
@@ -79,7 +57,7 @@ class Foram(Addressable):
 
     def _take_algae(self, capacity):
         taken = 0
-        cells = iter([self.cell] + self.cell.neighbours)
+        cells = iter([self.cell] + self.cell.get_neighbours())
         while capacity > taken:
             try:
                 cell = cells.next()
@@ -94,23 +72,27 @@ class Foram(Addressable):
     @counted
     def _reproduce(self):
         logger.debug("%s is reproducing" % self)
-        empty_neighbours = filter(lambda c: c.is_empty(), self.cell.neighbours)
+        empty_neighbours = filter(lambda c: c.is_empty(), self.cell.get_neighbours())
         if not empty_neighbours:
             return
         energy = self.energy / (len(empty_neighbours) * 2.0)
         for cell in empty_neighbours:
             self.energy -= energy
             foram = Foram(energy, Genom(self.genom.chambers_limit))
-            cell.insert_foram(foram)
             self.parent.add_foram(foram)
+            cell.insert_foram(foram)
 
     def _move(self):
         try:
-            empty_neighbours = filter(lambda c: c.is_empty(), self.cell.neighbours)
-            logger.debug(self.cell.neighbours)
+            empty_neighbours = filter(lambda c: c.is_empty(), self.cell.get_neighbours())
+            if not empty_neighbours:
+                logger.warning("nowhere to move")
+                return
+            logger.debug(self.cell.get_neighbours())
             logger.debug(empty_neighbours)
             cell = max(empty_neighbours,
-                       key=lambda c: random() + c.available_food() + sum(s.available_food() for s in c.neighbours))
+                       key=lambda c: random() + c.available_food() + sum(
+                           s.available_food() for s in c.get_neighbours()))
             if cell:
                 cell.insert_foram(self.cell.remove_foram())
                 self.energy -= 0.25
@@ -137,7 +119,7 @@ class Foram(Addressable):
         logger.debug("Foram %s has a new chamber, so %d altogether" % (self, self.chambers))
 
     def __repr__(self):
-        return "Foram[%.2f, %d]" % (self.energy, self.chambers)
+        return "%s[%.2f, %d]" % (self.get_address(), self.energy, self.chambers)
 
 
 def create_forams(count, initial_energy):

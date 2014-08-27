@@ -113,7 +113,7 @@ class SimpleStatistics(Statistics):
         super(SimpleStatistics, self).__init__()
 
     def update(self, step_count, agents):
-        if step_count % 15 == 0:
+        # if step_count % 5 == 0:
             logger.info(self.environment.grid)
 
     def summarize(self, agents):
