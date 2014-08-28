@@ -1,22 +1,18 @@
 import logging
-from random import choice
-
-import Pyro4
 
 from pyage.core.agent.agent import AGENT
-from pyage.core.inject import InjectOptional, Inject
-from pyage_forams.solutions.distributed.request import MigrateRequest
+from pyage.core.inject import Inject
+from pyage_forams.solutions.distributed.requests.migrate import MigrateRequest
 
 
 logger = logging.getLogger(__name__)
 
 
 class ShadowCell(object):
-
     @Inject("request_dispatcher")
     def __init__(self, address, available_food, algae, agent_address):
         self.food = available_food
-        self.algae = algae
+        self._algae = algae
         self.address = address
         self.agent_address = agent_address
         self.empty = True
@@ -28,13 +24,18 @@ class ShadowCell(object):
     def insert_foram(self, foram):
         if hasattr(foram, "parent"):
             foram.parent.remove_foram(foram.get_address())
-        self.empty = False
         self.export_foram(foram)
 
     def take_algae(self, demand):
-        to_let = min(demand, self.algae)
-        self.algae -= to_let
+        to_let = min(demand, self._algae)
+        self._algae -= to_let
         return to_let
+
+    def get_algae(self):
+        return self._algae
+
+    def add_algae(self, algae):
+        self._algae += algae
 
     def is_empty(self):
         return self.empty
@@ -51,9 +52,9 @@ class ShadowCell(object):
     def export_foram(self, foram):
         logger.info("exporting %s to %s" % (foram, self.address))
         self.request_dispatcher.submit_request(
-            MigrateRequest(AGENT + "." + self.agent_address, self.address, foram))
+            MigrateRequest(self.agent_address, self.address, foram))
 
     def __repr__(self):
-        return "(%d, ShadowCell, %d)" % (self.algae, self.available_food())
+        return "(%d, ShadowCell, %d)" % (self._algae, self.available_food())
 
 

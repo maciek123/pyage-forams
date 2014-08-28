@@ -13,17 +13,13 @@ class RemoteForamAggregateAgent(Addressable):
     @Inject("forams", "environment", "neighbour_matcher", "request_dispatcher")
     def __init__(self):
         super(RemoteForamAggregateAgent, self).__init__()
-        self.matched = False
         self.requests = []
         for foram in self.forams.values():
             foram.parent = self
             self.environment.add_foram(foram)
+        self.neighbour_matcher.match_neighbours(self.environment, self.get_address())
 
     def step(self):
-        if not self.matched:
-            # TODO refactor
-            self.neighbour_matcher.match_neighbours(self.environment, self.get_address())
-            self.matched = True
         for foram in self.forams.values():
             if foram.cell is None or foram.cell.foram is None:
                 logger.warning("something went wrong %s" % foram)
@@ -48,8 +44,8 @@ class RemoteForamAggregateAgent(Addressable):
         logger.warn("taking %f algae from %s" % (algae, cell_address))
         self.environment.get_cell(cell_address).take_algae(algae)
 
-    def get_all_cells(self):
-        return [cell.get_address() for cell in self.environment.get_all_cells()]
+    def get_left_cells(self):
+        return self.environment.get_left_cells()
 
     def import_foram(self, cell_address, foram):
         try:
@@ -62,10 +58,6 @@ class RemoteForamAggregateAgent(Addressable):
 
     def submit_requests(self, requests):
         self.requests.extend(requests)
-
-    def join_shadow_cells(self, agent_address):
-        logger.info("joining %s" % agent_address)
-        self.neighbour_matcher.match_neighbours(self.environment, self.get_address(), agent_address)
 
 
 def create_remote_agent():

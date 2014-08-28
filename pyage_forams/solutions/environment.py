@@ -1,8 +1,8 @@
 import logging
 from random import randint, choice, random
 
-from pyage.core.address import Addressable
 from pyage.core.inject import Inject
+from pyage_forams.solutions.cell import Cell
 
 
 logger = logging.getLogger(__name__)
@@ -19,11 +19,11 @@ class AbstractEnvironment(object):
 
     def tick(self):
         for cell in self.get_all_cells():
-            if cell.algae > 0:
-                cell.algae += self.regeneration_factor + self.insolation_meter.get_insolation(cell)
+            if cell.get_algae() > 0:
+                cell.add_algae(self.regeneration_factor + self.insolation_meter.get_insolation(cell))
         while random() > 0.4:
             try:
-                choice(filter(lambda c: c.is_empty(), self.get_all_cells())).algae += 1 + random() * 2
+                choice(filter(lambda c: c.is_empty(), self.get_all_cells())).add_algae(1 + random() * 2)
             except:
                 pass
 
@@ -36,7 +36,7 @@ class AbstractEnvironment(object):
         self.get_cell(cell_address).add_neighbour(neighbour)
 
     def join(self, cells):
-        cell = self.get_all_cells().next()
+        cell = choice(self.grid[0])
         cell.add_neighbour(cells[0])
         return [cell]
 
@@ -59,6 +59,9 @@ class Environment2d(AbstractEnvironment):
         for row in self.grid:
             for cell in row:
                 yield cell
+
+    def get_left_cells(self):
+        return [row[0] for row in self.grid]
 
 
 class Environment3d(AbstractEnvironment):
@@ -86,47 +89,6 @@ class Environment3d(AbstractEnvironment):
             for row in plane:
                 for cell in row:
                     yield cell
-
-
-class Cell(Addressable):
-    def __init__(self, algae=0):
-        super(Cell, self).__init__()
-        self.algae = algae
-        self.foram = None
-        self._neighbours = []
-
-    def insert_foram(self, foram):
-        logging.info("inserting %s into %s" % (foram, self))
-        if not self.is_empty():
-            raise ValueError("cannot insert foram to already occupied cell")
-        self.foram = foram
-        foram.cell = self
-
-    def remove_foram(self):
-        foram = self.foram
-        foram.cell = None
-        self.foram = None
-        return foram
-
-    def is_empty(self):
-        return self.foram is None
-
-    def take_algae(self, demand):
-        to_let = min(demand, self.algae)
-        self.algae -= to_let
-        return to_let
-
-    def available_food(self):
-        return self.algae + sum(map(lambda c: c.algae, self._neighbours))
-
-    def add_neighbour(self, cell):
-        self._neighbours.append(cell)
-
-    def get_neighbours(self):
-        return self._neighbours
-
-    def __repr__(self):
-        return "(%d, %s, %d)" % (self.algae, self.foram, self.available_food())
 
 
 def environment_factory(regeneration_factor=0.1, clazz=Environment2d):

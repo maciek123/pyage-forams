@@ -1,39 +1,40 @@
 import logging
 from random import choice
+
 import Pyro4
+
 from pyage.core.agent.agent import AGENT
 from pyage.core.inject import InjectOptional, Inject
 from pyage_forams.solutions.agent.shadow_cell import ShadowCell
-from pyage_forams.solutions.distributed.request import MigrateRequest, MatchRequest
+from pyage_forams.solutions.distributed.requests.match import MatchRequest
+
 
 logger = logging.getLogger(__name__)
 
 
 class NeighbourMatcher(object):
-    def match_neighbours(self, environment, parent_address, remote_address=None):
+    def match_neighbours(self, environment, parent_address):
         raise NotImplementedError()
 
 
 class Neighbour2dMatcher(NeighbourMatcher):
-    @Inject("request_dispatcher")
+    @Inject("request_dispatcher", "size")
     def __init__(self):
         super(Neighbour2dMatcher, self).__init__()
 
-    def match_neighbours(self, environment, parent_address, remote_address=None):
-        if remote_address is None:
-            agent = self.get_random_aggregate(parent_address)
-        else:
-            ns = Pyro4.locateNS(self.ns_hostname)
-            agent = Pyro4.Proxy(ns.lookup(remote_address))
+    def match_neighbours(self, environment, parent_address):
+        agent = self.get_random_aggregate(parent_address)
         if agent:
-            if remote_address is None:  # TODO refactor
-                self.request_dispatcher.submit_request(
-                    MatchRequest(AGENT + '.' + agent.get_address(), AGENT + '.' + parent_address))
             agent_address = agent.get_address()
             logger.info("matching with: %s" % agent_address)
-            cell_address = choice(agent.get_all_cells())
-            shadow_cells = [ShadowCell(cell_address, 10, 1, agent_address)]
+            cells = agent.get_left_cells()
+            shadow_cells = [
+                ShadowCell(cell.get_address(), cell.available_food(), cell.get_algae(), AGENT + "." + agent_address) for
+                cell in cells]
             environment.join(shadow_cells)
+            self.request_dispatcher.submit_request(
+                MatchRequest(AGENT + '.' + agent.get_address(), environment.get_left_cells(),
+                             AGENT + '.' + parent_address))
 
 
     @InjectOptional('ns_hostname')
