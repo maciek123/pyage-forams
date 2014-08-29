@@ -49,10 +49,19 @@ class ShadowCell(object):
     def get_neighbours(self):
         return self.neighbours
 
+    def add_neighbour(self, neighbour):
+        self.neighbours.append(neighbour)
+
     def export_foram(self, foram):
         logger.info("exporting %s to %s" % (foram, self.address))
         self.request_dispatcher.submit_request(
             MigrateRequest(self.agent_address, self.address, foram))
+
+    def update(self, cell):
+        logger.info("updating! %s", cell)
+        self._algae = cell.get_algae()
+        self.food = cell.available_food()
+        self.empty = cell.is_empty()
 
     def __repr__(self):
         return "(%d, ShadowCell, %d)" % (self._algae, self.available_food())

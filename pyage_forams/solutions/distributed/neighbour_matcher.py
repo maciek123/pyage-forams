@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class NeighbourMatcher(object):
-    def match_neighbours(self, environment, parent_address):
+    def match_neighbours(self, agent):
         raise NotImplementedError()
 
 
@@ -22,20 +22,21 @@ class Neighbour2dMatcher(NeighbourMatcher):
     def __init__(self):
         super(Neighbour2dMatcher, self).__init__()
 
-    def match_neighbours(self, environment, parent_address):
-        agent = self.get_random_aggregate(parent_address)
-        if agent:
-            agent_address = agent.get_address()
-            logger.info("matching with: %s" % agent_address)
-            cells = agent.get_left_cells()
-            shadow_cells = [
-                ShadowCell(cell.get_address(), cell.available_food(), cell.get_algae(), AGENT + "." + agent_address) for
-                cell in cells]
-            environment.join(shadow_cells)
-            self.request_dispatcher.submit_request(
-                MatchRequest(AGENT + '.' + agent.get_address(), environment.get_left_cells(),
-                             AGENT + '.' + parent_address))
+    def match_neighbours(self, agent):
+        remote_agent = self.get_random_aggregate(agent.get_address())
+        if remote_agent:
+            self._join_left(remote_agent, agent)
 
+    def _join_left(self, remote_agent, agent):
+        remote_address = AGENT + "." + remote_agent.get_address()
+        logger.info("left matching with: %s" % remote_address)
+        cells = remote_agent.get_right_cells()
+        shadow_cells = [ShadowCell(cell.get_address(), cell.available_food(), cell.get_algae(), remote_address) for cell
+                        in cells]
+        agent.join_left(remote_address, shadow_cells)
+        self.request_dispatcher.submit_request(
+            MatchRequest(remote_address, agent.environment.get_left_cells(), AGENT + "." + agent.get_address(),
+                         "right"))
 
     @InjectOptional('ns_hostname')
     def get_random_aggregate(self, parent_address):

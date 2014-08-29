@@ -1,5 +1,6 @@
 import logging
 from time import sleep
+import Pyro4
 
 from pyage.core.address import Addressable
 from pyage.core.inject import Inject
@@ -10,14 +11,15 @@ logger = logging.getLogger(__name__)
 
 
 class RemoteForamAggregateAgent(Addressable):
-    @Inject("forams", "environment", "neighbour_matcher", "request_dispatcher")
+    @Inject("forams", "environment", "neighbour_matcher", "request_dispatcher", "ns_hostname")
     def __init__(self):
         super(RemoteForamAggregateAgent, self).__init__()
+        self.updates = []
         self.requests = []
         for foram in self.forams.values():
             foram.parent = self
             self.environment.add_foram(foram)
-        self.neighbour_matcher.match_neighbours(self.environment, self.get_address())
+        self.neighbour_matcher.match_neighbours(self)
 
     def step(self):
         for foram in self.forams.values():
@@ -29,6 +31,8 @@ class RemoteForamAggregateAgent(Addressable):
         self.request_dispatcher.send_requests()
         while self.requests:
             self.requests.pop().execute(self)
+        for update in self.updates:
+            update()
 
     def remove_foram(self, address):
         foram = self.forams[address]
@@ -46,6 +50,48 @@ class RemoteForamAggregateAgent(Addressable):
 
     def get_left_cells(self):
         return self.environment.get_left_cells()
+
+    def get_right_cells(self):
+        return self.environment.get_right_cells()
+
+    def get_upper_cells(self):
+        return self.environment.get_upper_cells()
+
+    def get_lower_cells(self):
+        return self.environment.get_lower_cells()
+
+    def join_left(self, remote_address, shadow_cells):
+        mapping = {cell.get_address(): cell for cell in shadow_cells}
+
+        def update():
+            logger.info("updating %s" % remote_address)
+            ns = Pyro4.locateNS(self.ns_hostname)
+            agent = Pyro4.Proxy(ns.lookup(remote_address))
+            cells = agent.get_right_cells()
+            for cell in cells:
+                if cell.get_address() in mapping:
+                    mapping[cell.get_address()].update(cell)
+
+        self.updates.append(update)
+        self.environment.join_left(shadow_cells)
+
+    def join_right(self, remote_address, shadow_cells):
+        mapping = {cell.get_address(): cell for cell in shadow_cells}
+
+        def update():
+            logger.info("updating %s" % remote_address)
+            try:
+                ns = Pyro4.locateNS(self.ns_hostname)
+                agent = Pyro4.Proxy(ns.lookup(remote_address))
+                cells = agent.get_left_cells()
+                for cell in cells:
+                    if cell.get_address() in mapping:
+                        mapping[cell.get_address()].update(cell)
+            except:
+                logging.exception("could not update")
+
+        self.updates.append(update)
+        self.environment.join_right(shadow_cells)
 
     def import_foram(self, cell_address, foram):
         try:
