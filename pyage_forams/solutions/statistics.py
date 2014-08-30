@@ -115,7 +115,7 @@ class PsiStatistics(Statistics):
         self.interval = interval
         self._column_names = ['"x"', '"y"', '"z"', '"Foram"', '"Algae"', '"Insolation"']
         self._column_symbols = ['"F"', '"A"', '"I"']
-        self._column_types = ['"float"', '"float"', '"float"']
+        self._column_types = ['float', 'float', 'float']
         self.filename = "forams-%s" % datetime.now().strftime("%Y%m%d_%H%M%S") if filename is None else filename
         self.counter = 0
 
