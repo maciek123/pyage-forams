@@ -1,4 +1,5 @@
 from __future__ import print_function
+from compiler.ast import flatten
 from datetime import datetime
 import itertools
 import logging
@@ -105,6 +106,64 @@ class CsvStatistics(Statistics):
                  sum(c.algae for row in self.environment.grid for c in row),
                  Foram._reproduce.called]
         return entry
+
+
+class PsiStatistics(Statistics):
+    @Inject("environment", "insolation_meter", "stop_condition")
+    def __init__(self, interval=1, filename=None):
+        super(PsiStatistics, self).__init__()
+        self.interval = interval
+        self._column_names = ['"x"', '"y"', '"z"', '"Foram"', '"Algae"', '"Insolation"']
+        self._column_symbols = ['"F"', '"A"', '"I"']
+        self._column_types = ['float', 'float', 'float']
+        self.filename = "forams-%s" % datetime.now().strftime("%Y%m%d_%H%M%S") if filename is None else filename
+        self.counter = 0
+
+    def update(self, step_count, agents):
+        if step_count % self.interval == 0:
+            self.counter += 1
+            new_filename = '%s%s.psi' % (self.filename, '%06d' % self.counter)
+            with open(new_filename, 'w') as f:
+                self._add_header(f)
+                self._add_data(f)
+
+    def summarize(self, agents):
+        pass
+
+    def _add_header(self, f):
+        f.write('# PSI Format 1.0\n#\n')
+        self._add_column_names(f)
+        self._add_column_symbols(f)
+        self._add_column_types(f)
+        f.write('%d 2694 115001\n'
+                     '1.00 0.00 0.00\n'
+                     '0.00 1.00 0.00\n'
+                     '0.00 0.00 1.00\n\n'
+                     % len(flatten(self.environment.grid)))
+
+    def _add_data(self, f):
+        for x in range(len(self.environment.grid)):
+            for y in range(len(self.environment.grid[x])):
+                for z in range(len(self.environment.grid[x][y])):
+                    f.write(' '.join(map(str, self._get_entry(x, y, z))) + '\n')
+
+    def _get_entry(self, x, y, z):
+        cell = self.environment.grid[x][y][z]
+        return map(float, [x, y, z] + [0 if cell.is_empty() else cell.foram.chambers,
+                                       cell.algae,
+                                       self.insolation_meter.get_insolation(cell)])
+
+    def _add_column_names(self, f):
+        names = (['# column[%d] = %s' % (i, n) for i, n in enumerate(self._column_names)])
+        f.write('\n'.join(names) + '\n')
+
+    def _add_column_symbols(self, f):
+        symbols = ['# symbol[%d] = %s' % (i + 3, s) for i, s in enumerate(self._column_symbols)]
+        f.write('\n'.join(symbols) + '\n')
+
+    def _add_column_types(self, f):
+        types = ['# type[%d] = %s' % (i + 3, t) for i, t in enumerate(self._column_types)]
+        f.write('\n'.join(types) + '\n')
 
 
 class SimpleStatistics(Statistics):
