@@ -27,6 +27,10 @@ request_dispatcher = create_dispatcher()
 
 stop_condition = lambda: StepLimitStopCondition(90)
 
+reproduction_minimum = lambda: 10
+movement_energy = lambda: 0.25
+growth_minimum = lambda: 10
+
 address_provider = address.SequenceAddressProvider
 stats = SimpleStatistics
 
