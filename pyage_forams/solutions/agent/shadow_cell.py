@@ -1,4 +1,5 @@
 import logging
+from pyage_forams.solutions.distributed.request import TakeAlgaeRequest
 
 from pyage.core.agent.agent import AGENT
 from pyage.core.inject import Inject
@@ -25,10 +26,12 @@ class ShadowCell(object):
         if hasattr(foram, "parent"):
             foram.parent.remove_foram(foram.get_address())
         self.export_foram(foram)
+        self.empty = False
 
     def take_algae(self, demand):
         to_let = min(demand, self._algae)
         self._algae -= to_let
+        self.request_dispatcher.submit_request(TakeAlgaeRequest(self.agent_address, self.address, to_let))
         return to_let
 
     def get_algae(self):
