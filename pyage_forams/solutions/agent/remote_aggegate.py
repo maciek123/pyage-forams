@@ -13,7 +13,9 @@ logger = logging.getLogger(__name__)
 
 class RemoteForamAggregateAgent(Addressable):
     @Inject("forams", "environment", "neighbour_matcher", "request_dispatcher", "ns_hostname")
-    def __init__(self):
+    def __init__(self, name=None):
+        if name is not None:
+            self.name = name
         super(RemoteForamAggregateAgent, self).__init__()
         self.updates = []
         self.requests = []
@@ -83,6 +85,6 @@ class RemoteForamAggregateAgent(Addressable):
         self.requests.extend(requests)
 
 
-def create_remote_agent():
-    agent = RemoteForamAggregateAgent()
+def create_remote_agent(name):
+    agent = RemoteForamAggregateAgent(name)
     return {agent.get_address(): agent}

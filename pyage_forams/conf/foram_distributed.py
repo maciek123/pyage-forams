@@ -1,4 +1,6 @@
 # coding=utf-8
+from functools import partial
+from random import random
 import Pyro4
 from pyage.core import address
 
@@ -16,7 +18,7 @@ from pyage_forams.solutions.statistics import SimpleStatistics
 factory = GenomFactory(chambers_limit=5)
 genom_factory = lambda: factory.generate
 forams = create_forams(1, initial_energy=5)
-agents = create_remote_agent
+agents = partial(create_remote_agent, "A" + str(random()))
 insolation_meter = InsolationMeter
 size = lambda: 3
 
