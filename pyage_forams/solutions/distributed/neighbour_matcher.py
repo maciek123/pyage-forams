@@ -25,18 +25,19 @@ class Neighbour2dMatcher(NeighbourMatcher):
     def match_neighbours(self, agent):
         remote_agent = self.get_random_aggregate(agent.get_address())
         if remote_agent:
-            self._join_left(remote_agent, agent)
+            self._join(remote_agent, agent, "right")
 
-    def _join_left(self, remote_agent, agent):
+    def _join(self, remote_agent, agent, side):
         remote_address = AGENT + "." + remote_agent.get_address()
         logger.info("left matching with: %s" % remote_address)
-        cells = remote_agent.get_right_cells()
+        cells = remote_agent.get_cells(side)
         shadow_cells = [ShadowCell(cell.get_address(), cell.available_food(), cell.get_algae(), remote_address) for cell
                         in cells]
-        agent.join_left(remote_address, shadow_cells)
+        agent.join(remote_address, shadow_cells, opposite(side))
         self.request_dispatcher.submit_request(
-            MatchRequest(remote_address, agent.environment.get_left_cells(), AGENT + "." + agent.get_address(),
-                         "right"))
+            MatchRequest(remote_address, agent.environment.get_border_cells(opposite(side)),
+                         AGENT + "." + agent.get_address(),
+                         side))
 
     @InjectOptional('ns_hostname')
     def get_random_aggregate(self, parent_address):
@@ -50,3 +51,14 @@ class Neighbour2dMatcher(NeighbourMatcher):
             return Pyro4.Proxy(choice(agents.values()))
         except:
             logging.exception("could not locate")
+
+
+def opposite(side):
+    if side == "left":
+        return "right"
+    elif side == "right":
+        return "left"
+    elif side == "upper":
+        return "lower"
+    elif side == "lower":
+        return "upper"

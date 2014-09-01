@@ -5,6 +5,7 @@ import Pyro4
 from pyage.core.address import Addressable
 from pyage.core.inject import Inject
 from pyage_forams.solutions.agent.shadow_cell import ShadowCell
+from pyage_forams.solutions.distributed.neighbour_matcher import opposite
 
 
 logger = logging.getLogger(__name__)
@@ -48,42 +49,18 @@ class RemoteForamAggregateAgent(Addressable):
         logger.warn("taking %f algae from %s" % (algae, cell_address))
         self.environment.get_cell(cell_address).take_algae(algae)
 
-    def get_left_cells(self):
-        return self.environment.get_left_cells()
+    def get_cells(self, side):
+        return self.environment.get_border_cells(side)
 
-    def get_right_cells(self):
-        return self.environment.get_right_cells()
-
-    def get_upper_cells(self):
-        return self.environment.get_upper_cells()
-
-    def get_lower_cells(self):
-        return self.environment.get_lower_cells()
-
-    def join_left(self, remote_address, shadow_cells):
+    def join(self, remote_address, shadow_cells, side):
         mapping = {cell.get_address(): cell for cell in shadow_cells}
 
         def update():
-            logger.info("updating %s" % remote_address)
-            ns = Pyro4.locateNS(self.ns_hostname)
-            agent = Pyro4.Proxy(ns.lookup(remote_address))
-            cells = agent.get_right_cells()
-            for cell in cells:
-                if cell.get_address() in mapping:
-                    mapping[cell.get_address()].update(cell)
-
-        self.updates.append(update)
-        self.environment.join_left(shadow_cells)
-
-    def join_right(self, remote_address, shadow_cells):
-        mapping = {cell.get_address(): cell for cell in shadow_cells}
-
-        def update():
-            logger.info("updating %s" % remote_address)
             try:
+                logger.info("updating %s" % remote_address)
                 ns = Pyro4.locateNS(self.ns_hostname)
                 agent = Pyro4.Proxy(ns.lookup(remote_address))
-                cells = agent.get_left_cells()
+                cells = agent.get_cells(opposite(side))
                 for cell in cells:
                     if cell.get_address() in mapping:
                         mapping[cell.get_address()].update(cell)
@@ -91,7 +68,7 @@ class RemoteForamAggregateAgent(Addressable):
                 logging.exception("could not update")
 
         self.updates.append(update)
-        self.environment.join_right(shadow_cells)
+        self.environment.join_cells(shadow_cells, side)
 
     def import_foram(self, cell_address, foram):
         try:

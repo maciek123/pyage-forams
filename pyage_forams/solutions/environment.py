@@ -55,39 +55,32 @@ class Environment2d(AbstractEnvironment):
             for cell in row:
                 yield cell
 
-    # TODO some refactoring
-    def get_left_cells(self):
+    def get_border_cells(self, side):
+        if side == "right":
+            return self._get_right_cells()
+        elif side == "left":
+            return self._get_left_cells()
+        elif side == "upper":
+            return self._get_upper_cells()
+        elif side == "lower":
+            return self._get_lower_cells()
+
+    def _get_left_cells(self):
         return [row[0] for row in self.grid]
 
-    def get_right_cells(self):
+    def _get_right_cells(self):
         return [row[-1] for row in self.grid]
 
-    def get_upper_cells(self):
+    def _get_upper_cells(self):
         return self.grid[0]
 
-    def get_lower_cells(self):
+    def _get_lower_cells(self):
         return self.grid[-1]
 
-    def join_left(self, cells):
-        for (c1, c2) in zip(cells, self.get_left_cells()):
+    def join_cells(self, cells, side):
+        for (c1, c2) in zip(cells, self.get_border_cells(side)):
             c1.add_neighbour(c2)
             c2.add_neighbour(c1)
-
-    def join_right(self, cells):
-        for (c1, c2) in zip(cells, self.get_right_cells()):
-            c1.add_neighbour(c2)
-            c2.add_neighbour(c1)
-
-    def join_upper(self, cells):
-        for (c1, c2) in zip(cells, self.get_upper_cells()):
-            c1.add_neighbour(c2)
-            c2.add_neighbour(c1)
-
-    def join_lower(self, cells):
-        for (c1, c2) in zip(cells, self.get_lower_cells()):
-            c1.add_neighbour(c2)
-            c2.add_neighbour(c1)
-
 
 class Environment3d(AbstractEnvironment):
     @Inject("size")
