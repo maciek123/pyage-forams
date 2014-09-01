@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class Foram(Addressable):
-    @Inject("genom_factory")
+    @Inject("genom_factory", "reproduction_minimum", "movement_energy", "growth_minimum")
     def __init__(self, energy, genom=None):
         super(Foram, self).__init__()
         self.energy = energy
@@ -67,7 +67,7 @@ class Foram(Addressable):
         return taken
 
     def _can_reproduce(self):
-        return self.energy > 10 and self.genom.chambers_limit <= self.chambers
+        return self.energy > self.reproduction_minimum and self.genom.chambers_limit <= self.chambers
 
     @counted
     def _reproduce(self):
@@ -95,7 +95,7 @@ class Foram(Addressable):
                            s.available_food() for s in c.get_neighbours()))
             if cell:
                 cell.insert_foram(self.cell.remove_foram())
-                self.energy -= 0.25
+                self.energy -= self.movement_energy
                 logger.debug("%s moved" % self)
         except:
             logging.exception("could not move")
@@ -110,8 +110,7 @@ class Foram(Addressable):
         self.cell.remove_foram()
 
     def _can_create_chamber(self):
-        # TODO hardcoded energy levels
-        return self.energy > 10 and self.genom.chambers_limit > self.chambers
+        return self.energy > self.growth_minimum and self.genom.chambers_limit > self.chambers
 
     def _create_chamber(self):
         self.energy -= 5

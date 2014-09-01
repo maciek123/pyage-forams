@@ -17,6 +17,10 @@ agents = create_agent
 insolation_meter = InsolationMeter
 size = lambda: 10
 
+reproduction_minimum = lambda: 10
+movement_energy = lambda: 0.25
+growth_minimum = lambda: 10
+
 environment = environment_factory(regeneration_factor=0.1, clazz=Environment3d)
 
 stop_condition = lambda: StepLimitStopCondition(90)
