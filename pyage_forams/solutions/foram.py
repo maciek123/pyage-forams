@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class ForamAggregateAgent(Addressable):
-    @Inject("forams", "environment", "energy_need")
+    @Inject("forams", "environment")
     def __init__(self):
         super(ForamAggregateAgent, self).__init__()
         for foram in self.forams.values():
@@ -21,7 +21,7 @@ class ForamAggregateAgent(Addressable):
     def step(self):
         for foram in self.forams.values():
             foram.step()
-        self.environment.tick()
+        self.environment.tick(self.parent.steps)
 
     def remove_foram(self, address):
         foram = self.forams[address]
@@ -35,7 +35,7 @@ class ForamAggregateAgent(Addressable):
 
 
 class Foram(Addressable):
-    @Inject("genom_factory", "reproduction_minimum", "movement_energy", "growth_minimum")
+    @Inject("genom_factory", "reproduction_minimum", "movement_energy", "growth_minimum", "energy_need")
     def __init__(self, energy, genom=None):
         super(Foram, self).__init__()
         self.energy = energy

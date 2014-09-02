@@ -13,3 +13,7 @@ address_provider = address.SequenceAddressProvider
 size = lambda: 3
 
 
+reproduction_minimum = lambda: 10
+movement_energy = lambda: 0.25
+growth_minimum = lambda: 10
+energy_need = lambda: 0.2

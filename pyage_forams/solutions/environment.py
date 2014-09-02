@@ -12,10 +12,10 @@ class AbstractEnvironment(object):
     def add_foram(self, foram):
         choice(filter(lambda c: c.is_empty(), self.get_all_cells())).insert_foram(foram)
 
-    def tick(self):
+    def tick(self, step):
         for cell in self.get_all_cells():
             if cell.algae > 0:
-                cell.algae += self.regeneration_factor + self.insolation_meter.get_insolation(cell)
+                cell.algae += self.regeneration_factor + self.insolation_meter.get_insolation(cell, step)
         while random() > 0.4:
             try:
                 choice(filter(lambda c: c.is_empty(), self.get_all_cells())).algae += 1 + random() * 2
@@ -56,7 +56,7 @@ class Environment3d(AbstractEnvironment):
         for i in range(self.size):
             for j in range(self.size):
                 for k in range(self.size):
-                    grid[i][j][k].depth = i
+                    grid[i][j][k].depth = self.size - k - 1
                     grid[i][j][k].neighbours.extend(
                         [grid[x][y][z] for x in range(max(0, i - 1), min(self.size, i + 2)) for y in
                          range(max(0, j - 1), min(self.size, j + 2)) for z in
