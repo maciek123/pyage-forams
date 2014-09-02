@@ -20,6 +20,7 @@ size = lambda: 10
 reproduction_minimum = lambda: 10
 movement_energy = lambda: 0.25
 growth_minimum = lambda: 10
+energy_need = lambda: 0.2
 
 environment = environment_factory(regeneration_factor=0.1, clazz=Environment3d)
 

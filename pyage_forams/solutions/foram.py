@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class ForamAggregateAgent(Addressable):
-    @Inject("forams", "environment")
+    @Inject("forams", "environment", "energy_need")
     def __init__(self):
         super(ForamAggregateAgent, self).__init__()
         for foram in self.forams.values():
@@ -75,7 +75,7 @@ class Foram(Addressable):
         return capacity
 
     def _energy_demand(self):
-        return 0.2 * (self.chambers + 1)
+        return self.energy_need * (self.chambers + 1)
 
     def _take_algae(self, capacity):
         taken = 0
