@@ -14,7 +14,7 @@ factory = GenomFactory(chambers_limit=5)
 genom_factory = lambda: factory.generate
 forams = create_forams(8, initial_energy=5)
 agents = create_agent
-insolation_meter = StaticInsolation
+insolation_meter = lambda: StaticInsolation(surface_insolation=10, insolation_factor=0.2)
 size = lambda: 10
 
 reproduction_minimum = lambda: 10
