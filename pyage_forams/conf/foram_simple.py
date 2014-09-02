@@ -6,7 +6,7 @@ from pyage.core.stop_condition import StepLimitStopCondition
 from pyage_forams.solutions.environment import environment_factory, Environment3d
 from pyage_forams.solutions.foram import create_forams, create_agent
 from pyage_forams.solutions.genom import GenomFactory
-from pyage_forams.solutions.insolation_meter import StaticInsolation
+from pyage_forams.solutions.insolation_meter import StaticInsolation, DynamicInsolation
 from pyage_forams.solutions.statistics import SimpleStatistics
 
 
@@ -14,7 +14,7 @@ factory = GenomFactory(chambers_limit=5)
 genom_factory = lambda: factory.generate
 forams = create_forams(8, initial_energy=5)
 agents = create_agent
-insolation_meter = lambda: StaticInsolation(surface_insolation=10, insolation_factor=0.2)
+insolation_meter = lambda: DynamicInsolation([(20, 10, 0.2), (10, 20, 0.4)])
 size = lambda: 10
 
 reproduction_minimum = lambda: 10

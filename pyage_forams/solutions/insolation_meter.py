@@ -16,7 +16,6 @@ class DynamicInsolation(object):
 
     def get_insolation(self, cell, step):
         depth = getattr(cell, "depth", 0)
-        print step
         step = step % sum(season[0] for season in self.seasons)
         if step == 0:
             season = self.seasons[-1]
