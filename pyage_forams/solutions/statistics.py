@@ -125,7 +125,7 @@ class PsiStatistics(Statistics):
             new_filename = '%s%s.psi' % (self.filename, '%06d' % self.counter)
             with open(new_filename, 'w') as f:
                 self._add_header(f)
-                self._add_data(f)
+                self._add_data(f, step_count)
 
     def summarize(self, agents):
         pass
@@ -136,22 +136,22 @@ class PsiStatistics(Statistics):
         self._add_column_symbols(f)
         self._add_column_types(f)
         f.write('%d 2694 115001\n'
-                     '1.00 0.00 0.00\n'
-                     '0.00 1.00 0.00\n'
-                     '0.00 0.00 1.00\n\n'
-                     % len(flatten(self.environment.grid)))
+                '1.00 0.00 0.00\n'
+                '0.00 1.00 0.00\n'
+                '0.00 0.00 1.00\n\n'
+                % len(flatten(self.environment.grid)))
 
-    def _add_data(self, f):
+    def _add_data(self, f, step):
         for x in range(len(self.environment.grid)):
             for y in range(len(self.environment.grid[x])):
                 for z in range(len(self.environment.grid[x][y])):
-                    f.write(' '.join(map(str, self._get_entry(x, y, z))) + '\n')
+                    f.write(' '.join(map(str, self._get_entry(x, y, z, step))) + '\n')
 
-    def _get_entry(self, x, y, z):
+    def _get_entry(self, x, y, z, step):
         cell = self.environment.grid[x][y][z]
         return map(float, [x, y, z] + [0 if cell.is_empty() else cell.foram.chambers,
                                        cell.algae,
-                                       self.insolation_meter.get_insolation(cell)])
+                                       self.insolation_meter.get_insolation(cell, step)])
 
     def _add_column_names(self, f):
         names = (['# column[%d] = %s' % (i, n) for i, n in enumerate(self._column_names)])
@@ -172,7 +172,7 @@ class SimpleStatistics(Statistics):
         super(SimpleStatistics, self).__init__()
 
     def update(self, step_count, agents):
-        if step_count % 15 == 0:
+        if step_count % 150 == 0:
             logger.info(self.environment.grid)
 
     def summarize(self, agents):

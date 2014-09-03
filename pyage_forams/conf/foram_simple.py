@@ -7,7 +7,7 @@ from pyage_forams.solutions.environment import environment_factory, Environment3
 from pyage_forams.solutions.foram import create_forams, create_agent
 from pyage_forams.solutions.genom import GenomFactory
 from pyage_forams.solutions.insolation_meter import StaticInsolation, DynamicInsolation
-from pyage_forams.solutions.statistics import SimpleStatistics
+from pyage_forams.solutions.statistics import SimpleStatistics, PsiStatistics
 
 
 factory = GenomFactory(chambers_limit=5)
@@ -27,4 +27,4 @@ environment = environment_factory(regeneration_factor=0.1, clazz=Environment3d)
 stop_condition = lambda: StepLimitStopCondition(90)
 
 address_provider = address.SequenceAddressProvider
-stats = SimpleStatistics
+stats = PsiStatistics
