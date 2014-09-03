@@ -4,7 +4,7 @@ class StaticInsolation(object):
         self.surface_insolation = surface_insolation
         self.insolation_factor = insolation_factor
 
-    def get_insolation(self, cell, step):
+    def get_insolation(self, cell, step=0):
         depth = getattr(cell, "depth", 0)
         return max(0, self.surface_insolation - depth * self.insolation_factor)
 
@@ -14,7 +14,7 @@ class DynamicInsolation(object):
         super(DynamicInsolation, self).__init__()
         self.seasons = seasons
 
-    def get_insolation(self, cell, step):
+    def get_insolation(self, cell, step=0):
         depth = getattr(cell, "depth", 0)
         step = step % sum(season[0] for season in self.seasons)
         if step == 0:
