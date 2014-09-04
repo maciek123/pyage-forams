@@ -4,7 +4,7 @@ from pyage.core.inject import Inject
 
 
 class AbstractEnvironment(object):
-    @Inject("insolation_meter")
+    @Inject("insolation_meter", "algae_limit", "initial_algae_probability")
     def __init__(self, regeneration_factor):
         super(AbstractEnvironment, self).__init__()
         self.regeneration_factor = regeneration_factor
@@ -14,7 +14,7 @@ class AbstractEnvironment(object):
 
     def tick(self, step):
         for cell in self.get_all_cells():
-            if cell.algae > 0:
+            if 0 < cell.algae < self.algae_limit:
                 cell.algae += self.regeneration_factor + self.insolation_meter.get_insolation(cell, step)
         while random() > 0.4:
             try:
@@ -30,7 +30,8 @@ class Environment2d(AbstractEnvironment):
         self.grid = self._initialize_grid()
 
     def _initialize_grid(self):
-        grid = [[Cell(randint(0, 4) if random() > 0.7 else 0) for _ in range(self.size)] for _ in range(self.size)]
+        grid = [[Cell(randint(0, 4) if random() < self.initial_algae_probability else 0) for _ in range(self.size)] for
+                _ in range(self.size)]
         for i in range(self.size):
             for j in range(self.size):
                 grid[i][j].neighbours.extend([grid[x][y] for x in range(max(0, i - 1), min(self.size, i + 2)) for y in
@@ -51,7 +52,7 @@ class Environment3d(AbstractEnvironment):
         self.grid = self._initialize_grid()
 
     def _initialize_grid(self):
-        grid = [[[Cell(randint(1, 4) if random() > 0.7 else 0)
+        grid = [[[Cell(randint(1, 4) if random() < self.initial_algae_probability else 0)
                   for _ in range(self.size)] for _ in range(self.size)] for _ in range(self.size)]
         for i in range(self.size):
             for j in range(self.size):

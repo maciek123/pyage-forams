@@ -1,5 +1,5 @@
 import logging
-from random import random
+from random import random, sample
 
 from pyage.core.address import Addressable
 from pyage.core.inject import Inject
@@ -35,7 +35,8 @@ class ForamAggregateAgent(Addressable):
 
 
 class Foram(Addressable):
-    @Inject("genom_factory", "reproduction_minimum", "movement_energy", "growth_minimum", "energy_need")
+    @Inject("genom_factory", "reproduction_minimum", "movement_energy", "growth_minimum", "energy_need",
+            "newborn_limit")
     def __init__(self, energy, genom=None):
         super(Foram, self).__init__()
         self.energy = energy
@@ -52,7 +53,6 @@ class Foram(Addressable):
         if not self.alive:
             logger.warn("called step on dead foram")
             return
-        logger.debug("foram! %s" % self.steps)
         self.steps += 1
         if self._should_die():
             self._die()
@@ -93,24 +93,27 @@ class Foram(Addressable):
 
     @counted
     def _reproduce(self):
-        logger.debug("%s is reproducing" % self)
         empty_neighbours = filter(lambda c: c.is_empty(), self.cell.neighbours)
         if not empty_neighbours:
+            logger.debug("%s has no space to reproduce" % self)
             return
+        logger.debug("%s is reproducing" % self)
+        if len(empty_neighbours) > self.newborn_limit:
+            empty_neighbours = sample(empty_neighbours, self.newborn_limit)
         energy = self.energy / (len(empty_neighbours) * 2.0)
         for cell in empty_neighbours:
             self.energy -= energy
             foram = Foram(energy, Genom(self.genom.chambers_limit))
             cell.insert_foram(foram)
             self.parent.add_foram(foram)
+        logger.debug("%s has reproduced into %d cells" % ( self, len(empty_neighbours)))
 
     def _move(self):
         try:
             empty_neighbours = filter(lambda c: c.is_empty(), self.cell.neighbours)
             if not empty_neighbours:
-                logger.warning("nowhere to move")
+                logger.warning("%s has nowhere to move" % self)
                 return
-            logger.debug(self.cell.neighbours)
             logger.debug(empty_neighbours)
             cell = max(empty_neighbours,
                        key=lambda c: random() + c.available_food() + sum(s.available_food() for s in c.neighbours))
