@@ -1,10 +1,10 @@
 import logging
 from time import sleep
+
 import Pyro4
 
 from pyage.core.address import Addressable
 from pyage.core.inject import Inject
-from pyage_forams.solutions.agent.shadow_cell import ShadowCell
 from pyage_forams.solutions.distributed.neighbour_matcher import opposite
 
 
