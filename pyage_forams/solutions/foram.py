@@ -1,5 +1,5 @@
 import logging
-from random import random
+from random import random, sample
 
 from pyage.core.address import Addressable
 from pyage.core.inject import Inject
@@ -21,7 +21,7 @@ class ForamAggregateAgent(Addressable):
     def step(self):
         for foram in self.forams.values():
             foram.step()
-        self.environment.tick()
+        self.environment.tick(self.parent.steps)
 
     def remove_foram(self, address):
         foram = self.forams[address]
@@ -35,7 +35,8 @@ class ForamAggregateAgent(Addressable):
 
 
 class Foram(Addressable):
-    @Inject("genom_factory")
+    @Inject("genom_factory", "reproduction_minimum", "movement_energy", "growth_minimum", "energy_need",
+            "newborn_limit", "reproduction_probability", "growth_probability", "growth_cost_factor", "capacity_factor")
     def __init__(self, energy, genom=None):
         super(Foram, self).__init__()
         self.energy = energy
@@ -44,7 +45,7 @@ class Foram(Addressable):
         else:
             self.genom = genom
         self.steps = 0
-        self.chambers = 0
+        self.chambers = 1
         self.alive = True
         self.cell = None
 
@@ -52,7 +53,6 @@ class Foram(Addressable):
         if not self.alive:
             logger.warn("called step on dead foram")
             return
-        logger.debug("foram! %s" % self.steps)
         self.steps += 1
         if self._should_die():
             self._die()
@@ -71,11 +71,11 @@ class Foram(Addressable):
         return self.energy - e
 
     def _energy_capacity(self):
-        capacity = self.chambers + 1
+        capacity = self.chambers * self.capacity_factor
         return capacity
 
     def _energy_demand(self):
-        return 0.2 * (self.chambers + 1)
+        return self.energy_need * (self.chambers + 1)
 
     def _take_algae(self, capacity):
         taken = 0
@@ -89,31 +89,39 @@ class Foram(Addressable):
         return taken
 
     def _can_reproduce(self):
-        return self.energy > 10 and self.genom.chambers_limit <= self.chambers
+        return self.energy > self.reproduction_minimum and self.genom.chambers_limit <= self.chambers \
+            and random() < self.reproduction_probability
 
     @counted
     def _reproduce(self):
-        logger.debug("%s is reproducing" % self)
         empty_neighbours = filter(lambda c: c.is_empty(), self.cell.neighbours)
         if not empty_neighbours:
+            logger.debug("%s has no space to reproduce" % self)
             return
+        logger.debug("%s is reproducing" % self)
+        if len(empty_neighbours) > self.newborn_limit:
+            empty_neighbours = sample(empty_neighbours, self.newborn_limit)
         energy = self.energy / (len(empty_neighbours) * 2.0)
         for cell in empty_neighbours:
-            self.energy -= energy
+            self.energy = 0
             foram = Foram(energy, Genom(self.genom.chambers_limit))
             cell.insert_foram(foram)
             self.parent.add_foram(foram)
+        logger.debug("%s has reproduced into %d cells and will now die" % (self, len(empty_neighbours)))
+        self._die()
 
     def _move(self):
         try:
             empty_neighbours = filter(lambda c: c.is_empty(), self.cell.neighbours)
-            logger.debug(self.cell.neighbours)
+            if not empty_neighbours:
+                logger.warning("%s has nowhere to move" % self)
+                return
             logger.debug(empty_neighbours)
             cell = max(empty_neighbours,
                        key=lambda c: random() + c.available_food() + sum(s.available_food() for s in c.neighbours))
             if cell:
                 cell.insert_foram(self.cell.remove_foram())
-                self.energy -= 0.25
+                self.energy -= self.movement_energy
                 logger.debug("%s moved" % self)
         except:
             logging.exception("could not move")
@@ -128,11 +136,11 @@ class Foram(Addressable):
         self.cell.remove_foram()
 
     def _can_create_chamber(self):
-        # TODO hardcoded energy levels
-        return self.energy > 10 and self.genom.chambers_limit > self.chambers
+        return self.energy > self.growth_minimum and self.genom.chambers_limit > self.chambers \
+            and random() > self.growth_probability
 
     def _create_chamber(self):
-        self.energy -= 5
+        self.energy -= self.growth_cost_factor * self.energy
         self.chambers += 1
         logger.debug("Foram %s has a new chamber, so %d altogether" % (self, self.chambers))
 
