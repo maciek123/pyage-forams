@@ -113,9 +113,9 @@ class PsiStatistics(Statistics):
     def __init__(self, interval=1, filename=None):
         super(PsiStatistics, self).__init__()
         self.interval = interval
-        self._column_names = ['"x"', '"y"', '"z"', '"Foram"', '"Algae"', '"Insolation"']
-        self._column_symbols = ['"F"', '"A"', '"I"']
-        self._column_types = ['float', 'float', 'float']
+        self._column_names = ['"x"', '"y"', '"z"', '"Foram"', '"Energy"', '"Algae"', '"Insolation"']
+        self._column_symbols = ['"F"', '"E"', '"A"', '"I"']
+        self._column_types = ['float', 'float', 'float', 'float']
         self.filename = "forams-%s" % datetime.now().strftime("%Y%m%d_%H%M%S") if filename is None else filename
         self.counter = 0
 
@@ -150,6 +150,7 @@ class PsiStatistics(Statistics):
     def _get_entry(self, x, y, z):
         cell = self.environment.grid[x][y][z]
         return map(float, [x, y, z] + [0 if cell.is_empty() else cell.foram.chambers,
+                                       0 if cell.is_empty() else cell.foram.energy,
                                        cell.algae,
                                        self.insolation_meter.get_insolation(cell)])
 
