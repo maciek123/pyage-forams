@@ -23,6 +23,8 @@ growth_minimum = lambda: 10
 energy_need = lambda: 0.2
 algae_limit = lambda: 20
 newborn_limit = lambda: 9
+reproduction_probability = lambda: 0.8
+growth_probability = lambda: 0.8
 initial_algae_probability = lambda: 0.3
 
 environment = environment_factory(regeneration_factor=0.1, clazz=Environment3d)

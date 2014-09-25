@@ -36,7 +36,7 @@ class ForamAggregateAgent(Addressable):
 
 class Foram(Addressable):
     @Inject("genom_factory", "reproduction_minimum", "movement_energy", "growth_minimum", "energy_need",
-            "newborn_limit")
+            "newborn_limit", "reproduction_probability", "growth_probability")
     def __init__(self, energy, genom=None):
         super(Foram, self).__init__()
         self.energy = energy
@@ -89,7 +89,8 @@ class Foram(Addressable):
         return taken
 
     def _can_reproduce(self):
-        return self.energy > self.reproduction_minimum and self.genom.chambers_limit <= self.chambers
+        return self.energy > self.reproduction_minimum and self.genom.chambers_limit <= self.chambers \
+            and random() < self.reproduction_probability
 
     @counted
     def _reproduce(self):
@@ -135,7 +136,8 @@ class Foram(Addressable):
         self.cell.remove_foram()
 
     def _can_create_chamber(self):
-        return self.energy > self.growth_minimum and self.genom.chambers_limit > self.chambers
+        return self.energy > self.growth_minimum and self.genom.chambers_limit > self.chambers \
+            and random() > self.growth_probability
 
     def _create_chamber(self):
         self.energy -= 0.5 * self.energy
