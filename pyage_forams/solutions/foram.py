@@ -45,7 +45,7 @@ class Foram(Addressable):
         else:
             self.genom = genom
         self.steps = 0
-        self.chambers = 0
+        self.chambers = 1
         self.alive = True
         self.cell = None
 
@@ -102,11 +102,12 @@ class Foram(Addressable):
             empty_neighbours = sample(empty_neighbours, self.newborn_limit)
         energy = self.energy / (len(empty_neighbours) * 2.0)
         for cell in empty_neighbours:
-            self.energy -= energy
+            self.energy = 0
             foram = Foram(energy, Genom(self.genom.chambers_limit))
             cell.insert_foram(foram)
             self.parent.add_foram(foram)
-        logger.debug("%s has reproduced into %d cells" % ( self, len(empty_neighbours)))
+        logger.debug("%s has reproduced into %d cells and will now die" % (self, len(empty_neighbours)))
+        self._die()
 
     def _move(self):
         try:
@@ -137,7 +138,7 @@ class Foram(Addressable):
         return self.energy > self.growth_minimum and self.genom.chambers_limit > self.chambers
 
     def _create_chamber(self):
-        self.energy -= 5
+        self.energy -= 0.5 * self.energy
         self.chambers += 1
         logger.debug("Foram %s has a new chamber, so %d altogether" % (self, self.chambers))
 
