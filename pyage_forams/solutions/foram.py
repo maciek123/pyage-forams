@@ -90,7 +90,7 @@ class Foram(Addressable):
 
     def _can_reproduce(self):
         return self.energy > self.reproduction_minimum and self.genom.chambers_limit <= self.chambers \
-            and random() < self.reproduction_probability
+               and random() < self.reproduction_probability
 
     @counted
     def _reproduce(self):
@@ -104,11 +104,15 @@ class Foram(Addressable):
         energy = self.energy / (len(empty_neighbours) * 2.0)
         for cell in empty_neighbours:
             self.energy = 0
-            foram = Foram(energy, Genom(self.genom.chambers_limit))
-            cell.insert_foram(foram)
-            self.parent.add_foram(foram)
+            self._create_child(cell, energy)
         logger.debug("%s has reproduced into %d cells and will now die" % (self, len(empty_neighbours)))
         self._die()
+
+    @counted
+    def _create_child(self, cell, energy):
+        foram = Foram(energy, Genom(self.genom.chambers_limit))
+        cell.insert_foram(foram)
+        self.parent.add_foram(foram)
 
     def _move(self):
         try:
@@ -129,6 +133,7 @@ class Foram(Addressable):
     def _should_die(self):
         return self.energy <= 0
 
+    @counted
     def _die(self):
         logger.debug("%s died" % self)
         self.alive = False
@@ -137,7 +142,7 @@ class Foram(Addressable):
 
     def _can_create_chamber(self):
         return self.energy > self.growth_minimum and self.genom.chambers_limit > self.chambers \
-            and random() > self.growth_probability
+               and random() > self.growth_probability
 
     def _create_chamber(self):
         self.energy -= self.growth_cost_factor * self.energy
