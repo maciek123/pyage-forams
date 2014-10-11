@@ -89,12 +89,16 @@ class CsvStatistics(Statistics):
         super(CsvStatistics, self).__init__()
         self.interval = interval
         self.filename = "forams-%s.log" % datetime.now().strftime("%Y%m%d_%H%M%S") if filename is None else filename
+        self.died_so_far = 0
+        self.born_so_far = 0
 
     def update(self, step_count, agents):
         if step_count % self.interval == 0:
             with open(self.filename, 'ab') as f:
                 entry = self._get_entry(agents, step_count)
                 print((",".join(map(str, entry))), file=f)
+        self.died_so_far = Foram._die.called
+        self.born_so_far = Foram._create_child.called
 
     def summarize(self, agents):
         pass
@@ -102,9 +106,9 @@ class CsvStatistics(Statistics):
     def _get_entry(self, agents, step_count):
         forams_count = len(agents[0].forams)
         entry = [step_count, forams_count,
-                 sum(f.chambers for f in agents[0].forams.values()) / float(forams_count) if forams_count > 0 else 0,
-                 sum(c.algae for row in self.environment.grid for c in row),
-                 Foram._reproduce.called]
+                 sum(f.chambers for f in agents[0].forams.values()),
+                 Foram._die.called - self.died_so_far,
+                 Foram._create_child.called - self.born_so_far]
         return entry
 
 
@@ -113,9 +117,9 @@ class PsiStatistics(Statistics):
     def __init__(self, interval=1, filename=None):
         super(PsiStatistics, self).__init__()
         self.interval = interval
-        self._column_names = ['"x"', '"y"', '"z"', '"Foram"', '"Algae"', '"Insolation"']
-        self._column_symbols = ['"F"', '"A"', '"I"']
-        self._column_types = ['float', 'float', 'float']
+        self._column_names = ['"x"', '"y"', '"z"', '"Foram"', '"Energy"', '"Algae"', '"Insolation"']
+        self._column_symbols = ['"F"', '"E"', '"A"', '"I"']
+        self._column_types = ['float', 'float', 'float', 'float']
         self.filename = "forams-%s" % datetime.now().strftime("%Y%m%d_%H%M%S") if filename is None else filename
         self.counter = 0
 
@@ -125,7 +129,7 @@ class PsiStatistics(Statistics):
             new_filename = '%s%s.psi' % (self.filename, '%06d' % self.counter)
             with open(new_filename, 'w') as f:
                 self._add_header(f)
-                self._add_data(f)
+                self._add_data(f, step_count)
 
     def summarize(self, agents):
         pass
@@ -136,22 +140,23 @@ class PsiStatistics(Statistics):
         self._add_column_symbols(f)
         self._add_column_types(f)
         f.write('%d 2694 115001\n'
-                     '1.00 0.00 0.00\n'
-                     '0.00 1.00 0.00\n'
-                     '0.00 0.00 1.00\n\n'
-                     % len(flatten(self.environment.grid)))
+                '1.00 0.00 0.00\n'
+                '0.00 1.00 0.00\n'
+                '0.00 0.00 1.00\n\n'
+                % len(flatten(self.environment.grid)))
 
-    def _add_data(self, f):
+    def _add_data(self, f, step):
         for x in range(len(self.environment.grid)):
             for y in range(len(self.environment.grid[x])):
                 for z in range(len(self.environment.grid[x][y])):
-                    f.write(' '.join(map(str, self._get_entry(x, y, z))) + '\n')
+                    f.write(' '.join(map(str, self._get_entry(x, y, z, step))) + '\n')
 
-    def _get_entry(self, x, y, z):
+    def _get_entry(self, x, y, z, step):
         cell = self.environment.grid[x][y][z]
         return map(float, [x, y, z] + [0 if cell.is_empty() else cell.foram.chambers,
+                                       0 if cell.is_empty() else cell.foram.energy,
                                        cell.algae,
-                                       self.insolation_meter.get_insolation(cell)])
+                                       self.insolation_meter.get_insolation(cell, step)])
 
     def _add_column_names(self, f):
         names = (['# column[%d] = %s' % (i, n) for i, n in enumerate(self._column_names)])
@@ -172,9 +177,22 @@ class SimpleStatistics(Statistics):
         super(SimpleStatistics, self).__init__()
 
     def update(self, step_count, agents):
-        # if step_count % 5 == 0:
+        if step_count % 150 == 0:
             logger.info(self.environment.grid)
 
     def summarize(self, agents):
         logger.debug("done")
 
+
+class MultipleStatistics(Statistics):
+    def __init__(self, stats):
+        super(MultipleStatistics, self).__init__()
+        self.stats = stats
+
+    def update(self, step_count, agents):
+        for s in self.stats:
+            s.update(step_count, agents)
+
+    def summarize(self, agents):
+        for s in self.stats:
+            s.summarize(agents)
