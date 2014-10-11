@@ -40,4 +40,4 @@ ns_hostname = lambda: "127.0.0.1"
 pyro_daemon = Pyro4.Daemon()
 daemon = lambda: pyro_daemon
 
-neighbours = lambda: {"left": "bottomleft", "top": "upperright"}
+neighbours = lambda: {"left": "bottomleft", "upper": "upperright"}

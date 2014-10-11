@@ -1,5 +1,4 @@
 import logging
-from random import choice
 
 import Pyro4
 
@@ -23,22 +22,25 @@ class Neighbour2dMatcher(NeighbourMatcher):
         super(Neighbour2dMatcher, self).__init__()
 
     def match_neighbours(self, agent):
-        for (side, address ) in self.neighbours.iteritems():
+        for (side, address) in self.neighbours.iteritems():
             neighbour = self._locate_neighbour(address)
             if neighbour:
                 self._join(neighbour, agent, side)
 
     def _join(self, remote_agent, agent, side):
-        remote_address = AGENT + "." + remote_agent.get_address()
-        logger.info("%s matching with: %s" % (side, remote_address))
-        cells = remote_agent.get_cells(side)
-        shadow_cells = [ShadowCell(cell.get_address(), cell.available_food(), cell.get_algae(), remote_address) for cell
-                        in cells]
-        agent.join(remote_address, shadow_cells, opposite(side))
-        self.request_dispatcher.submit_request(
-            MatchRequest(remote_address, agent.environment.get_border_cells(opposite(side)),
-                         AGENT + "." + agent.get_address(),
-                         side))
+        try:
+            remote_address = AGENT + "." + remote_agent.get_address()
+            logger.info("%s matching with: %s" % (side, remote_address))
+            cells = remote_agent.get_cells(opposite(side))
+            logger.info("received cells: %s" % cells)
+            shadow_cells = [ShadowCell(cell.get_address(), cell.available_food(), cell.get_algae(), remote_address) for
+                            cell in cells]
+            agent.join(remote_address, shadow_cells, side)
+            self.request_dispatcher.submit_request(
+                MatchRequest(remote_address, agent.environment.get_border_cells(opposite(side)),
+                             AGENT + "." + agent.get_address(), opposite(side)))
+        except Exception, e:
+            logger.exception("could not join: %s", e.message)
 
     @InjectOptional('ns_hostname')
     def _locate_neighbour(self, address):
@@ -46,7 +48,7 @@ class Neighbour2dMatcher(NeighbourMatcher):
             ns = Pyro4.locateNS(self.ns_hostname)
             agents = ns.list(AGENT + "." + address)
             logger.warning(agents)
-            return Pyro4.Proxy(choice(agents.values()))
+            return Pyro4.Proxy(agents.values().pop())
         except:
             logging.exception("could not locate %s" % address)
 
@@ -60,3 +62,5 @@ def opposite(side):
         return "lower"
     elif side == "lower":
         return "upper"
+    else:
+        raise ValueError("unrecognized side: " + side)

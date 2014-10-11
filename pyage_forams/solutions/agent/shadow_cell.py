@@ -1,7 +1,6 @@
 import logging
-from pyage_forams.solutions.distributed.request import TakeAlgaeRequest
 
-from pyage.core.agent.agent import AGENT
+from pyage_forams.solutions.distributed.request import TakeAlgaeRequest
 from pyage.core.inject import Inject
 from pyage_forams.solutions.distributed.requests.migrate import MigrateRequest
 
@@ -61,7 +60,7 @@ class ShadowCell(object):
             MigrateRequest(self.agent_address, self.address, foram))
 
     def update(self, cell):
-        logger.info("updating! %s", cell)
+        logger.info("%s  updating! %s", self, cell)
         self._algae = cell.get_algae()
         self.food = cell.available_food()
         self.empty = cell.is_empty()

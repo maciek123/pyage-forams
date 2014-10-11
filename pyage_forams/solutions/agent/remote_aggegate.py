@@ -19,6 +19,7 @@ class RemoteForamAggregateAgent(Addressable):
         super(RemoteForamAggregateAgent, self).__init__()
         self.updates = []
         self.requests = []
+        self.joined = {}
         for foram in self.forams.values():
             foram.parent = self
             self.environment.add_foram(foram)
@@ -71,6 +72,8 @@ class RemoteForamAggregateAgent(Addressable):
 
         self.updates.append(update)
         self.environment.join_cells(shadow_cells, side)
+        self.joined[side] = remote_address
+        logger.info("%s is now joined with: %s" % (self.address, self.joined))
 
     def import_foram(self, cell_address, foram):
         try:
