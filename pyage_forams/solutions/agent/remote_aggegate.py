@@ -67,6 +67,8 @@ class RemoteForamAggregateAgent(Addressable):
                 for cell in cells:
                     if cell.get_address() in mapping:
                         mapping[cell.get_address()].update(cell)
+                    else:
+                        logger.info("unsuccessful attempt to update cell with address %s", cell.get_address())
             except:
                 logging.exception("could not update")
 

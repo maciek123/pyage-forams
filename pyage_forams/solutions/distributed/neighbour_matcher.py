@@ -37,7 +37,7 @@ class Neighbour2dMatcher(NeighbourMatcher):
                             cell in cells]
             agent.join(remote_address, shadow_cells, side)
             self.request_dispatcher.submit_request(
-                MatchRequest(remote_address, agent.environment.get_border_cells(opposite(side)),
+                MatchRequest(remote_address, agent.environment.get_border_cells(side),
                              AGENT + "." + agent.get_address(), opposite(side)))
         except Exception, e:
             logger.exception("could not join: %s", e.message)
