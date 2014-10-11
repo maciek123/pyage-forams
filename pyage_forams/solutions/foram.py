@@ -26,7 +26,7 @@ class Foram(Addressable):
         self.cell = None
 
     def step(self):
-        logger.info("step %s", self.get_address())
+        logger.info("step %s", self)
         if not self.alive:
             logger.warn("called step on dead foram")
             return

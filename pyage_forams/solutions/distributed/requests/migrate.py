@@ -9,3 +9,6 @@ class MigrateRequest(Request):
 
     def execute(self, agent):
         agent.import_foram(self.cell_address, self.foram)
+
+    def __repr__(self):
+        return "MigrateRequest[%s, %s, %s]" % (self.agent_address, self.cell_address, self.foram)
