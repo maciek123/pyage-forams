@@ -30,7 +30,7 @@ class Foram(Addressable):
         if not self.alive:
             logger.warn("called step on dead foram")
             return
-        logger.debug("foram! %s" % self.steps)
+        logger.debug("foram! %s" % self.steps)  # TODO remove
         self.steps += 1
         if self._should_die():
             self._die()

@@ -35,10 +35,10 @@ class Neighbour2dMatcher(NeighbourMatcher):
             logger.info("received cells: %s" % cells)
             shadow_cells = [ShadowCell(cell.get_address(), cell.available_food(), cell.get_algae(), remote_address) for
                             cell in cells]
-            agent.join(remote_address, shadow_cells, side)
+            agent.join(remote_address, shadow_cells, side, remote_agent.get_steps())
             self.request_dispatcher.submit_request(
                 MatchRequest(remote_address, agent.environment.get_border_cells(side),
-                             AGENT + "." + agent.get_address(), opposite(side)))
+                             AGENT + "." + agent.get_address(), opposite(side), agent.get_steps()))
         except Exception, e:
             logger.exception("could not join: %s", e.message)
 

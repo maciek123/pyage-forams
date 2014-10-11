@@ -1,9 +1,11 @@
 import logging
+from random import random
 from time import sleep
 
 import Pyro4
 
 from pyage.core.address import Addressable
+from pyage.core.agent.agent import AGENT
 from pyage.core.inject import Inject
 from pyage_forams.solutions.distributed.neighbour_matcher import opposite
 
@@ -20,23 +22,45 @@ class RemoteForamAggregateAgent(Addressable):
         self.updates = []
         self.requests = []
         self.joined = {}
+        self._step = 0
         for foram in self.forams.values():
             foram.parent = self
             self.environment.add_foram(foram)
         self.neighbour_matcher.match_neighbours(self)
 
     def step(self):
+        self._step += 1
+        self._wait_for_neighbours()
         for foram in self.forams.values():
             if foram.cell is None or foram.cell.foram is None:
                 logger.warning("something went wrong %s" % foram)
             foram.step()
         self.environment.tick()
-        sleep(1)
+        sleep(1 + random())  # TODO remove
+        self._notify_neighbours()
         self.request_dispatcher.send_requests()
         while self.requests:
             self.requests.pop().execute(self)
         for update in self.updates:
             update()
+
+    def get_steps(self):
+        return self._step
+
+    def _wait_for_neighbours(self):
+        while not self._all_neighbours_ready():
+            logger.info("waiting for neighbours %d %s" % (self._step, self.joined))
+            sleep(1)  # TODO improve
+
+    def _all_neighbours_ready(self):
+        for (neighbour, step) in self.joined.iteritems():
+            if step < self._step - 1:  # TODO make configurable
+                return False
+        return True
+
+    def _notify_neighbours(self):
+        for (neighbour, step) in self.joined.iteritems():
+            self._notify_neighbour(neighbour)
 
     def remove_foram(self, address):
         foram = self.forams[address]
@@ -55,7 +79,7 @@ class RemoteForamAggregateAgent(Addressable):
     def get_cells(self, side):
         return self.environment.get_border_cells(side)
 
-    def join(self, remote_address, shadow_cells, side):
+    def join(self, remote_address, shadow_cells, side, step):
         mapping = {cell.get_address(): cell for cell in shadow_cells}
 
         def update():
@@ -69,13 +93,14 @@ class RemoteForamAggregateAgent(Addressable):
                         mapping[cell.get_address()].update(cell)
                     else:
                         logger.info("unsuccessful attempt to update cell with address %s", cell.get_address())
+                self.joined[remote_address] = agent.get_steps()
             except:
                 logging.exception("could not update")
 
         self.updates.append(update)
         self.environment.join_cells(shadow_cells, side)
-        self.joined[side] = remote_address
-        logger.info("%s is now joined with: %s" % (self.address, self.joined))
+        self.joined[remote_address] = step
+        logger.info("%s is now %s-joined with: %s" % (self.address, side, remote_address))
 
     def import_foram(self, cell_address, foram):
         try:
@@ -88,6 +113,19 @@ class RemoteForamAggregateAgent(Addressable):
 
     def submit_requests(self, requests):
         self.requests.extend(requests)
+
+    def notify(self, neighbour_address, steps):
+        logger.info("received notification %s %s", steps, neighbour_address)
+        self.joined[neighbour_address] = steps
+
+    def _notify_neighbour(self, neighbour):
+        try:
+            ns = Pyro4.locateNS(self.ns_hostname)
+            agent = Pyro4.Proxy(ns.lookup(neighbour))
+            agent.notify(AGENT + "." + self.get_address(), self.get_steps())
+            logger.info("notified %s", neighbour)
+        except:
+            logger.exception("could not notify neighbour")
 
 
 def create_remote_agent(name):
