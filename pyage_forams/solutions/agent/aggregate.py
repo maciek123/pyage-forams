@@ -18,7 +18,7 @@ class ForamAggregateAgent(Addressable):
     def step(self):
         for foram in self.forams.values():
             foram.step()
-        self.environment.tick()
+        self.environment.tick(self.parent.steps)
 
     def remove_foram(self, address):
         foram = self.forams[address]

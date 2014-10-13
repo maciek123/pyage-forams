@@ -19,8 +19,8 @@ class AbstractEnvironment(object):
 
     def tick(self, step):
         for cell in self.get_all_cells():
-            if 0 < cell.algae < self.algae_limit:
-                cell.algae += self.regeneration_factor + self.insolation_meter.get_insolation(cell, step)
+            if 0 < cell.get_algae() < self.algae_limit:
+                cell.add_algae(  self.regeneration_factor + self.insolation_meter.get_insolation(cell, step))
         while random() > 0.4:
             try:
                 choice(filter(lambda c: c.is_empty(), self.get_all_cells())).add_algae(1 + random() * 2)
@@ -97,7 +97,7 @@ class Environment3d(AbstractEnvironment):
             for j in range(self.size):
                 for k in range(self.size):
                     grid[i][j][k].depth = self.size - k - 1
-                    grid[i][j][k].neighbours.extend(
+                    grid[i][j][k]._neighbours.extend(
                         [grid[x][y][z] for x in range(max(0, i - 1), min(self.size, i + 2)) for y in
                          range(max(0, j - 1), min(self.size, j + 2)) for z in
                          range(max(0, k - 1), min(self.size, k + 2)) if x != i or y != j or z != k])

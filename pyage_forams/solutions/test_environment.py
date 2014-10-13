@@ -19,66 +19,66 @@ class TestEnvironment(TestCase):
     def test_neighborhood_symmetry(self):
         for environment in self._get_environments():
             for cell in environment.get_all_cells():
-                for neighbour in cell.neighbours:
-                    self.assertTrue(cell in neighbour.neighbours)
+                for neighbour in cell._neighbours:
+                    self.assertTrue(cell in neighbour._neighbours)
 
     def test_self_neighbourhood(self):
         for environment in self._get_environments():
             for cell in environment.get_all_cells():
-                self.assertFalse(cell in cell.neighbours)
+                self.assertFalse(cell in cell._neighbours)
 
     def test_neighbourhood_repetitions(self):
         for environment in self._get_environments():
             for cell in environment.get_all_cells():
-                self.assertEqual(len(cell.neighbours), len(set(cell.neighbours)))
+                self.assertEqual(len(cell._neighbours), len(set(cell._neighbours)))
 
     def test_2d_neighbourhood(self):
         grid = (self._get_environments()[0]).grid
-        self.assertEqual(len(grid[1][1].neighbours), 8)
+        self.assertEqual(len(grid[1][1]._neighbours), 8)
 
-        self.assertTrue(grid[0][0] in grid[1][1].neighbours)
-        self.assertTrue(grid[0][1] in grid[1][1].neighbours)
-        self.assertTrue(grid[0][2] in grid[1][1].neighbours)
-        self.assertTrue(grid[1][0] in grid[1][1].neighbours)
-        self.assertTrue(grid[1][2] in grid[1][1].neighbours)
-        self.assertTrue(grid[2][0] in grid[1][1].neighbours)
-        self.assertTrue(grid[2][1] in grid[1][1].neighbours)
-        self.assertTrue(grid[2][2] in grid[1][1].neighbours)
+        self.assertTrue(grid[0][0] in grid[1][1]._neighbours)
+        self.assertTrue(grid[0][1] in grid[1][1]._neighbours)
+        self.assertTrue(grid[0][2] in grid[1][1]._neighbours)
+        self.assertTrue(grid[1][0] in grid[1][1]._neighbours)
+        self.assertTrue(grid[1][2] in grid[1][1]._neighbours)
+        self.assertTrue(grid[2][0] in grid[1][1]._neighbours)
+        self.assertTrue(grid[2][1] in grid[1][1]._neighbours)
+        self.assertTrue(grid[2][2] in grid[1][1]._neighbours)
 
     def test_3d_neighbourhood(self):
         grid = (self._get_environments()[1]).grid
-        self.assertEqual(len(grid[1][1][1].neighbours), 26)
+        self.assertEqual(len(grid[1][1][1]._neighbours), 26)
 
-        self.assertTrue(grid[0][0][0] in grid[1][1][1].neighbours)
-        self.assertTrue(grid[0][0][1] in grid[1][1][1].neighbours)
-        self.assertTrue(grid[0][0][2] in grid[1][1][1].neighbours)
-        self.assertTrue(grid[0][0][0] in grid[1][1][1].neighbours)
-        self.assertTrue(grid[0][1][1] in grid[1][1][1].neighbours)
-        self.assertTrue(grid[0][1][2] in grid[1][1][1].neighbours)
-        self.assertTrue(grid[0][1][0] in grid[1][1][1].neighbours)
-        self.assertTrue(grid[0][2][0] in grid[1][1][1].neighbours)
-        self.assertTrue(grid[0][2][1] in grid[1][1][1].neighbours)
-        self.assertTrue(grid[0][2][2] in grid[1][1][1].neighbours)
-        self.assertTrue(grid[1][0][0] in grid[1][1][1].neighbours)
-        self.assertTrue(grid[1][0][1] in grid[1][1][1].neighbours)
-        self.assertTrue(grid[1][0][2] in grid[1][1][1].neighbours)
-        self.assertTrue(grid[1][1][0] in grid[1][1][1].neighbours)
-        self.assertTrue(grid[1][1][2] in grid[1][1][1].neighbours)
-        self.assertTrue(grid[1][2][0] in grid[1][1][1].neighbours)
-        self.assertTrue(grid[1][2][1] in grid[1][1][1].neighbours)
-        self.assertTrue(grid[1][2][2] in grid[1][1][1].neighbours)
-        self.assertTrue(grid[2][0][0] in grid[1][1][1].neighbours)
-        self.assertTrue(grid[2][0][1] in grid[1][1][1].neighbours)
-        self.assertTrue(grid[2][0][2] in grid[1][1][1].neighbours)
-        self.assertTrue(grid[2][0][0] in grid[1][1][1].neighbours)
-        self.assertTrue(grid[2][0][1] in grid[1][1][1].neighbours)
-        self.assertTrue(grid[2][0][2] in grid[1][1][1].neighbours)
-        self.assertTrue(grid[2][1][0] in grid[1][1][1].neighbours)
-        self.assertTrue(grid[2][1][1] in grid[1][1][1].neighbours)
-        self.assertTrue(grid[2][1][2] in grid[1][1][1].neighbours)
-        self.assertTrue(grid[2][2][0] in grid[1][1][1].neighbours)
-        self.assertTrue(grid[2][2][1] in grid[1][1][1].neighbours)
-        self.assertTrue(grid[2][2][2] in grid[1][1][1].neighbours)
+        self.assertTrue(grid[0][0][0] in grid[1][1][1]._neighbours)
+        self.assertTrue(grid[0][0][1] in grid[1][1][1]._neighbours)
+        self.assertTrue(grid[0][0][2] in grid[1][1][1]._neighbours)
+        self.assertTrue(grid[0][0][0] in grid[1][1][1]._neighbours)
+        self.assertTrue(grid[0][1][1] in grid[1][1][1]._neighbours)
+        self.assertTrue(grid[0][1][2] in grid[1][1][1]._neighbours)
+        self.assertTrue(grid[0][1][0] in grid[1][1][1]._neighbours)
+        self.assertTrue(grid[0][2][0] in grid[1][1][1]._neighbours)
+        self.assertTrue(grid[0][2][1] in grid[1][1][1]._neighbours)
+        self.assertTrue(grid[0][2][2] in grid[1][1][1]._neighbours)
+        self.assertTrue(grid[1][0][0] in grid[1][1][1]._neighbours)
+        self.assertTrue(grid[1][0][1] in grid[1][1][1]._neighbours)
+        self.assertTrue(grid[1][0][2] in grid[1][1][1]._neighbours)
+        self.assertTrue(grid[1][1][0] in grid[1][1][1]._neighbours)
+        self.assertTrue(grid[1][1][2] in grid[1][1][1]._neighbours)
+        self.assertTrue(grid[1][2][0] in grid[1][1][1]._neighbours)
+        self.assertTrue(grid[1][2][1] in grid[1][1][1]._neighbours)
+        self.assertTrue(grid[1][2][2] in grid[1][1][1]._neighbours)
+        self.assertTrue(grid[2][0][0] in grid[1][1][1]._neighbours)
+        self.assertTrue(grid[2][0][1] in grid[1][1][1]._neighbours)
+        self.assertTrue(grid[2][0][2] in grid[1][1][1]._neighbours)
+        self.assertTrue(grid[2][0][0] in grid[1][1][1]._neighbours)
+        self.assertTrue(grid[2][0][1] in grid[1][1][1]._neighbours)
+        self.assertTrue(grid[2][0][2] in grid[1][1][1]._neighbours)
+        self.assertTrue(grid[2][1][0] in grid[1][1][1]._neighbours)
+        self.assertTrue(grid[2][1][1] in grid[1][1][1]._neighbours)
+        self.assertTrue(grid[2][1][2] in grid[1][1][1]._neighbours)
+        self.assertTrue(grid[2][2][0] in grid[1][1][1]._neighbours)
+        self.assertTrue(grid[2][2][1] in grid[1][1][1]._neighbours)
+        self.assertTrue(grid[2][2][2] in grid[1][1][1]._neighbours)
 
     def _get_environments(self):
         return [Environment2d(0.2), Environment3d(0.2)]

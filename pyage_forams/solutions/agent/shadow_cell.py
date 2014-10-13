@@ -24,6 +24,8 @@ class ShadowCell(object):
     def insert_foram(self, foram):
         if hasattr(foram, "parent"):
             foram.parent.remove_foram(foram.get_address())
+        else:
+            logger.info("%s has no parent", foram)
         self.export_foram(foram)
         self.empty = False
 

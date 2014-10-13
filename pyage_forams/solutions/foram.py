@@ -35,10 +35,10 @@ class Foram(Addressable):
         if self._should_die():
             self._die()
             return
-        if self._can_reproduce():
-            self._reproduce()
         if self._eat() <= 0:
             self._move()
+        if self._can_reproduce():
+            self._reproduce()
         if self._can_create_chamber():
             self._create_chamber()
 
@@ -90,8 +90,8 @@ class Foram(Addressable):
     @counted
     def _create_child(self, cell, energy):
         foram = Foram(energy, Genom(self.genom.chambers_limit))
-        cell.insert_foram(foram)
         self.parent.add_foram(foram)
+        cell.insert_foram(foram)
 
     def _move(self):
         try:

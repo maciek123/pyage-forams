@@ -35,7 +35,7 @@ class RemoteForamAggregateAgent(Addressable):
             if foram.cell is None or foram.cell.foram is None:
                 logger.warning("something went wrong %s" % foram)
             foram.step()
-        self.environment.tick()
+        self.environment.tick(self._step)
         sleep(1 + random())  # TODO remove
         self._notify_neighbours()
         self.request_dispatcher.send_requests()
@@ -63,6 +63,7 @@ class RemoteForamAggregateAgent(Addressable):
             self._notify_neighbour(neighbour)
 
     def remove_foram(self, address):
+        logger.info("removing foram %s", address)
         foram = self.forams[address]
         del self.forams[address]
         foram.parent = None
