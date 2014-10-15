@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class RemoteForamAggregateAgent(Addressable):
-    @Inject("forams", "environment", "neighbour_matcher", "request_dispatcher", "ns_hostname")
+    @Inject("forams", "environment", "neighbour_matcher", "request_dispatcher", "ns_hostname", "neighbours")
     def __init__(self, name=None):
         if name is not None:
             self.name = name
@@ -36,11 +36,9 @@ class RemoteForamAggregateAgent(Addressable):
                 logger.warning("something went wrong %s" % foram)
             foram.step()
         self.environment.tick(self._step)
-        # sleep(random() / 4)  # TODO remove
         self._notify_neighbours()
         self.request_dispatcher.send_requests()
-        while self.requests:
-            self.requests.pop().execute(self)
+        self._process_requests()
         for update in self.updates:
             update()
 
@@ -50,9 +48,16 @@ class RemoteForamAggregateAgent(Addressable):
     def _wait_for_neighbours(self):
         while not self._all_neighbours_ready():
             logger.info("waiting for neighbours %d %s" % (self._step, self.joined))
+            self._process_requests()
             sleep(random())  # TODO improve
 
+    def _process_requests(self):
+        while self.requests:
+            self.requests.pop().execute(self)
+
     def _all_neighbours_ready(self):
+        if len(self.joined) < len(self.neighbours):
+            return False
         for (neighbour, step) in self.joined.iteritems():
             if step < self._step - 1:  # TODO make configurable
                 return False

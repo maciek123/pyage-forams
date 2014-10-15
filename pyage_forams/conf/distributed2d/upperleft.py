@@ -18,7 +18,7 @@ from pyage_forams.solutions.statistics import PlottingStatistics
 factory = GenomFactory(chambers_limit=5)
 genom_factory = lambda: factory.generate
 forams = create_forams(1, initial_energy=5)
-agents = partial(create_remote_agent, "upperright")
+agents = partial(create_remote_agent, "upperleft")
 insolation_meter = StaticInsolation
 size = lambda: 5
 
@@ -32,14 +32,14 @@ stop_condition = lambda: StepLimitStopCondition(90)
 reproduction_minimum = lambda: 10
 movement_energy = lambda: 0.25
 growth_minimum = lambda: 10
-energy_need = lambda: 0.5
+energy_need = lambda: 0.2
 algae_limit = lambda: 2
 newborn_limit = lambda: 9
 reproduction_probability = lambda: 0.8
 growth_probability = lambda: 0.8
 growth_cost_factor = lambda: 0.5
 capacity_factor = lambda: 1.1
-initial_algae_probability = lambda: 0.1
+initial_algae_probability = lambda: 0.03
 
 address_provider = address.SequenceAddressProvider
 stats = PlottingStatistics
@@ -48,4 +48,4 @@ ns_hostname = lambda: "127.0.0.1"
 pyro_daemon = Pyro4.Daemon()
 daemon = lambda: pyro_daemon
 
-neighbours = lambda: {"left": "upperleft", "bottom": "bottomright"}
+neighbours = lambda: {"right": "upperright", "lower": "lowerleft"}

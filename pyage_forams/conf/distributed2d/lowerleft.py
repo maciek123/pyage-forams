@@ -18,7 +18,7 @@ from pyage_forams.solutions.statistics import PlottingStatistics
 factory = GenomFactory(chambers_limit=5)
 genom_factory = lambda: factory.generate
 forams = create_forams(1, initial_energy=5)
-agents = partial(create_remote_agent, "upperleft")
+agents = partial(create_remote_agent, "lowerleft")
 insolation_meter = StaticInsolation
 size = lambda: 5
 
@@ -48,4 +48,4 @@ ns_hostname = lambda: "127.0.0.1"
 pyro_daemon = Pyro4.Daemon()
 daemon = lambda: pyro_daemon
 
-neighbours = lambda: {"right": "upperright", "bottom": "bottomleft"}
+neighbours = lambda: {"right": "lowerright", "upper": "upperleft"}

@@ -15,10 +15,10 @@ from pyage_forams.solutions.insolation_meter import StaticInsolation
 from pyage_forams.solutions.statistics import PlottingStatistics
 
 
-factory = GenomFactory(chambers_limit=2)
+factory = GenomFactory(chambers_limit=5)
 genom_factory = lambda: factory.generate
-forams = create_forams(5, initial_energy=5)
-agents = partial(create_remote_agent, "bottomright")
+forams = create_forams(1, initial_energy=5)
+agents = partial(create_remote_agent, "upperright")
 insolation_meter = StaticInsolation
 size = lambda: 5
 
@@ -30,16 +30,16 @@ request_dispatcher = create_dispatcher()
 stop_condition = lambda: StepLimitStopCondition(90)
 
 reproduction_minimum = lambda: 10
-movement_energy = lambda: 0.025
+movement_energy = lambda: 0.25
 growth_minimum = lambda: 10
-energy_need = lambda: 0.3
+energy_need = lambda: 0.5
 algae_limit = lambda: 2
 newborn_limit = lambda: 9
-reproduction_probability = lambda: 0.08
+reproduction_probability = lambda: 0.8
 growth_probability = lambda: 0.8
 growth_cost_factor = lambda: 0.5
-capacity_factor = lambda: 1.3
-initial_algae_probability = lambda: 0.3
+capacity_factor = lambda: 1.1
+initial_algae_probability = lambda: 0.1
 
 address_provider = address.SequenceAddressProvider
 stats = PlottingStatistics
@@ -48,4 +48,4 @@ ns_hostname = lambda: "127.0.0.1"
 pyro_daemon = Pyro4.Daemon()
 daemon = lambda: pyro_daemon
 
-neighbours = lambda: {"left": "bottomleft", "upper": "upperright"}
+neighbours = lambda: {"left": "upperleft", "lower": "lowerright"}
