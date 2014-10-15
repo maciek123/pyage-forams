@@ -65,6 +65,8 @@ class Environment2d(AbstractEnvironment):
             return self._get_upper_cells()
         elif side == "lower":
             return self._get_lower_cells()
+        else:
+            raise KeyError("unknown side: %s" % side)
 
     def _get_left_cells(self):
         return [row[0] for row in self.grid]
@@ -109,6 +111,46 @@ class Environment3d(AbstractEnvironment):
             for row in plane:
                 for cell in row:
                     yield cell
+
+    def get_border_cells(self, side):
+        if side == "right":
+            return self._get_right_cells()
+        elif side == "left":
+            return self._get_left_cells()
+        elif side == "upper":
+            return self._get_upper_cells()
+        elif side == "lower":
+            return self._get_lower_cells()
+        elif side == "front":
+            return self._get_front_cells()
+        elif side == "back":
+            return self._get_back_cells()
+        else:
+            raise KeyError("unknown side: %s" % side)
+
+    def _get_left_cells(self):
+        return [row[0] for row in self.grid]
+
+    def _get_right_cells(self):
+        return [row[-1] for row in self.grid]
+
+    def _get_upper_cells(self):
+        return [c for c in self.grid[0]]
+
+    def _get_lower_cells(self):
+        return [c for c in self.grid[-1]]
+
+    def _get_front_cells(self):
+        return [[row[0] for row in plane] for plane in self.grid]
+
+    def _get_back_cells(self):
+        return [[row[-1] for row in plane] for plane in self.grid]
+
+    def join_cells(self, cells, side):
+        for (r1, r2) in zip(cells, self.get_border_cells(side)):
+            for (c1, c2) in zip(r1, r2):  #TODO diagonal neighbours
+                c1.add_neighbour(c2)
+                c2.add_neighbour(c1)
 
 
 def environment_factory(regeneration_factor=0.1, clazz=Environment2d):

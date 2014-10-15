@@ -5,10 +5,10 @@ import Pyro4
 from pyage.core import address
 
 from pyage.core.stop_condition import StepLimitStopCondition
-from pyage_forams.solutions.distributed.neighbour_matcher import Neighbour2dMatcher
+from pyage_forams.solutions.distributed.neighbour_matcher import Neighbour2dMatcher, Neighbour3dMatcher
 from pyage_forams.solutions.agent.remote_aggegate import create_remote_agent
 from pyage_forams.solutions.distributed.request import create_dispatcher
-from pyage_forams.solutions.environment import environment_factory, Environment2d
+from pyage_forams.solutions.environment import environment_factory, Environment3d
 from pyage_forams.solutions.foram import create_forams
 from pyage_forams.solutions.genom import GenomFactory
 from pyage_forams.solutions.insolation_meter import StaticInsolation
@@ -18,12 +18,12 @@ from pyage_forams.solutions.statistics import PlottingStatistics
 factory = GenomFactory(chambers_limit=2)
 genom_factory = lambda: factory.generate
 forams = create_forams(5, initial_energy=5)
-agents = partial(create_remote_agent, "lowerright")
+agents = partial(create_remote_agent, "lowerrightfront")
 insolation_meter = StaticInsolation
 size = lambda: 5
 
-environment = environment_factory(regeneration_factor=0.1, clazz=Environment2d)
-neighbour_matcher = Neighbour2dMatcher
+environment = environment_factory(regeneration_factor=0.1, clazz=Environment3d)
+neighbour_matcher = Neighbour3dMatcher
 
 request_dispatcher = create_dispatcher()
 
@@ -48,4 +48,4 @@ ns_hostname = lambda: "127.0.0.1"
 pyro_daemon = Pyro4.Daemon()
 daemon = lambda: pyro_daemon
 
-neighbours = lambda: {"left": "lowerleft", "upper": "upperright"}
+neighbours = lambda: {"left": "lowerleftfront", "upper": "upperrightfront", "back": "lowerrightback"}

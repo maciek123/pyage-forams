@@ -88,7 +88,7 @@ class RemoteForamAggregateAgent(Addressable):
     def get_cells(self, side):
         return self.environment.get_border_cells(side)
 
-    def join(self, remote_address, shadow_cells, side, step):
+    def join(self, remote_address, shadow_cells, side, step):  # TODO 3d join
         mapping = {cell.get_address(): cell for cell in shadow_cells}
 
         def update():

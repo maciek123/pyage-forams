@@ -12,14 +12,9 @@ logger = logging.getLogger(__name__)
 
 
 class NeighbourMatcher(object):
-    def match_neighbours(self, agent):
-        raise NotImplementedError()
-
-
-class Neighbour2dMatcher(NeighbourMatcher):
     @Inject("request_dispatcher", "size", "neighbours")
     def __init__(self):
-        super(Neighbour2dMatcher, self).__init__()
+        super(NeighbourMatcher, self).__init__()
 
     def match_neighbours(self, agent):
         for (side, address) in self.neighbours.iteritems():
@@ -27,6 +22,21 @@ class Neighbour2dMatcher(NeighbourMatcher):
             if neighbour:
                 self._join(neighbour, agent, side)
 
+    @InjectOptional('ns_hostname')
+    def _locate_neighbour(self, address):
+        try:
+            ns = Pyro4.locateNS(self.ns_hostname)
+            agents = ns.list(AGENT + "." + address)
+            logger.warning(agents)
+            return Pyro4.Proxy(agents.values().pop())
+        except:
+            logging.exception("could not locate %s" % address)
+
+    def _join(self, neighbour, agent, side):
+        raise NotImplementedError()
+
+
+class Neighbour2dMatcher(NeighbourMatcher):
     def _join(self, remote_agent, agent, side):
         try:
             remote_address = AGENT + "." + remote_agent.get_address()
@@ -42,16 +52,21 @@ class Neighbour2dMatcher(NeighbourMatcher):
         except Exception, e:
             logger.exception("could not join: %s", e.message)
 
-    @InjectOptional('ns_hostname')
-    def _locate_neighbour(self, address):
+class Neighbour3dMatcher(NeighbourMatcher):
+    def _join(self, remote_agent, agent, side):
         try:
-            ns = Pyro4.locateNS(self.ns_hostname)
-            agents = ns.list(AGENT + "." + address)
-            logger.warning(agents)
-            return Pyro4.Proxy(agents.values().pop())
-        except:
-            logging.exception("could not locate %s" % address)
-
+            remote_address = AGENT + "." + remote_agent.get_address()
+            logger.info("%s matching with: %s" % (side, remote_address))
+            rows = remote_agent.get_cells(opposite(side))
+            logger.info("received rows: %s" % rows)
+            shadow_cells = [[ShadowCell(cell.get_address(), cell.available_food(), cell.get_algae(), remote_address) for
+                            cell in cells] for cells in rows]
+            agent.join(remote_address, shadow_cells, side, remote_agent.get_steps())
+            self.request_dispatcher.submit_request(
+                MatchRequest(remote_address, agent.environment.get_border_cells(side),
+                             AGENT + "." + agent.get_address(), opposite(side), agent.get_steps()))
+        except Exception, e:
+            logger.exception("could not join: %s", e.message)
 
 def opposite(side):
     if side == "left":
@@ -62,5 +77,9 @@ def opposite(side):
         return "lower"
     elif side == "lower":
         return "upper"
+    elif side == "front":
+        return "back"
+    elif side == "back":
+        return "front"
     else:
         raise ValueError("unrecognized side: " + side)
