@@ -95,7 +95,7 @@ class Foram(Addressable):
 
     def _move(self):
         try:
-            empty_neighbours = filter(lambda c: c.is_empty(), self.cell.neighbours)
+            empty_neighbours = filter(lambda c: c.is_empty(), self.cell.get_neighbours())
             if not empty_neighbours:
                 logger.warning("%s has nowhere to move" % self)
                 return

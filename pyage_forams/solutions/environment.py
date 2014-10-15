@@ -20,10 +20,10 @@ class AbstractEnvironment(object):
     def tick(self, step):
         for cell in self.get_all_cells():
             if 0 < cell.get_algae() < self.algae_limit:
-                cell.add_algae(  self.regeneration_factor + self.insolation_meter.get_insolation(cell, step))
-        while random() > 0.4:
+                cell.add_algae(self.regeneration_factor + self.insolation_meter.get_insolation(cell, step))
+        while random() > 0.7:
             try:
-                choice(filter(lambda c: c.is_empty(), self.get_all_cells())).add_algae(1 + random() * 2)
+                choice(filter(lambda c: c.is_empty(), self.get_all_cells())).add_algae(random() * 2)
             except:
                 pass
 

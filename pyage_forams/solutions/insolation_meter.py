@@ -1,5 +1,5 @@
 class StaticInsolation(object):
-    def __init__(self, surface_insolation=10, insolation_factor=0.2):
+    def __init__(self, surface_insolation=1, insolation_factor=0.1):
         super(StaticInsolation, self).__init__()
         self.surface_insolation = surface_insolation
         self.insolation_factor = insolation_factor

@@ -36,7 +36,7 @@ class RemoteForamAggregateAgent(Addressable):
                 logger.warning("something went wrong %s" % foram)
             foram.step()
         self.environment.tick(self._step)
-        sleep(1 + random())  # TODO remove
+        # sleep(random() / 4)  # TODO remove
         self._notify_neighbours()
         self.request_dispatcher.send_requests()
         while self.requests:
@@ -50,7 +50,7 @@ class RemoteForamAggregateAgent(Addressable):
     def _wait_for_neighbours(self):
         while not self._all_neighbours_ready():
             logger.info("waiting for neighbours %d %s" % (self._step, self.joined))
-            sleep(1)  # TODO improve
+            sleep(random())  # TODO improve
 
     def _all_neighbours_ready(self):
         for (neighbour, step) in self.joined.iteritems():
@@ -59,8 +59,11 @@ class RemoteForamAggregateAgent(Addressable):
         return True
 
     def _notify_neighbours(self):
-        for (neighbour, step) in self.joined.iteritems():
-            self._notify_neighbour(neighbour)
+        try:
+            for (neighbour, step) in self.joined.iteritems():
+                self._notify_neighbour(neighbour)
+        except:
+            logger.exception("could not notify neighbours")
 
     def remove_foram(self, address):
         logger.info("removing foram %s", address)

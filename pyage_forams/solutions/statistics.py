@@ -22,15 +22,16 @@ class PlottingStatistics(Statistics):
         self.prefix = datetime.now().strftime("%Y%m%d_%H%M%S")
 
     def update(self, step_count, agents):
-        self.plot(self.environment.grid, step_count)
+        self.plot(self.environment.grid, step_count, agents)
 
     def summarize(self, agents):
-        cmd = "convert -loop 0 -delay 50 /tmp/pyage-%s-step-*.png animation.gif && rm /tmp/pyage-%s-step-*.png" % (
-            self.prefix, self.prefix)
-        Popen(cmd, shell=True)
+        pass
+        # cmd = "convert -loop 0 -delay 50 /tmp/pyage-step-*-%s.png animation.gif && rm /tmp/pyage-step-*-%s.png" % (
+        # self.prefix, self.prefix)
+        # Popen(cmd, shell=True)
 
-    def plot(self, grid, step):
-        plt.title("step %d" % step)
+    def plot(self, grid, step, agents):
+        plt.title("step %d %s" % (step, agents[0].get_address()))
 
         forams = []
         for (i, row) in enumerate(grid):
@@ -46,7 +47,7 @@ class PlottingStatistics(Statistics):
         self._draw_algae(grid, x, y)
         self._draw_grid(x, y)
 
-        plt.savefig("/tmp/pyage-%s-step-%07d.png" % (self.prefix, step))
+        plt.savefig("/tmp/pyage-step-%07d-%s.png" % (step, self.prefix))
         plt.close()
 
     @staticmethod
@@ -70,7 +71,7 @@ class PlottingStatistics(Statistics):
     def _draw_algae(grid, x, y):
         pts = itertools.product(range(x), range(y))
         plt.scatter(*zip(*pts), marker='*',
-                    s=[1000.0 / x * grid[i][j].algae for i in range(x) for j in range(y)], color='blue',
+                    s=[1000.0 / x * grid[i][j].get_algae() for i in range(x) for j in range(y)], color='blue',
                     alpha=0.5)
 
     @staticmethod
