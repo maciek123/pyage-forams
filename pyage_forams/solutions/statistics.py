@@ -128,24 +128,24 @@ class PsiStatistics(Statistics):
             self.counter += 1
             new_filename = '%s%s.psi' % (self.filename, '%06d' % self.counter)
             with open(new_filename, 'w') as f:
-                grids = self._get_nonempty_grids(step_count)
-                self._add_header(f, len(grids))
-                self._add_data(f, grids)
+                cells = self._get_nonempty_cells(step_count)
+                self._add_header(f, len(cells))
+                self._add_data(f, cells)
 
     def summarize(self, agents):
         pass
 
-    def _get_nonempty_grids(self, step):
-        nonempty_grids = []
+    def _get_nonempty_cells(self, step):
+        nonempty_cells = []
 
         for x in range(len(self.environment.grid)):
             for y in range(len(self.environment.grid[x])):
                 for z in range(len(self.environment.grid[x][y])):
                     entry = self._get_entry(x, y, z, step)
                     if entry:
-                        nonempty_grids.append(self._get_entry(x, y, z, step))
+                        nonempty_cells.append(self._get_entry(x, y, z, step))
 
-        return nonempty_grids
+        return nonempty_cells
 
     def _get_entry(self, x, y, z, step):
         cell = self.environment.grid[x][y][z]
@@ -156,7 +156,7 @@ class PsiStatistics(Statistics):
                                        cell.algae,
                                        self.insolation_meter.get_insolation(cell, step)])
 
-    def _add_header(self, f, grids_count):
+    def _add_header(self, f, cells_count):
         f.write('# PSI Format 1.0\n#\n')
         self._add_column_names(f)
         self._add_column_symbols(f)
@@ -165,11 +165,11 @@ class PsiStatistics(Statistics):
                 '1.00 0.00 0.00\n'
                 '0.00 1.00 0.00\n'
                 '0.00 0.00 1.00\n\n'
-                % grids_count)
+                % cells_count)
 
-    def _add_data(self, f, grids):
-        for g in grids:
-            f.write(' '.join(map(str, g)) + '\n')
+    def _add_data(self, f, cells):
+        for c in cells:
+            f.write(' '.join(map(str, c)) + '\n')
 
     def _add_column_names(self, f):
         names = (['# column[%d] = %s' % (i, n) for i, n in enumerate(self._column_names)])
