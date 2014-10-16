@@ -88,7 +88,7 @@ class CsvStatistics(Statistics):
     def __init__(self, interval=1, filename=None):
         super(CsvStatistics, self).__init__()
         self.interval = interval
-        self.filename = "forams-%s.log" % datetime.now().strftime("%Y%m%d_%H%M%S") if filename is None else filename
+        self.filename = "forams-%s.csv" % datetime.now().strftime("%Y%m%d_%H%M%S") if filename is None else filename
         self.died_so_far = 0
         self.born_so_far = 0
 
