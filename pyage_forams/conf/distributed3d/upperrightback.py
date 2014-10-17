@@ -12,7 +12,7 @@ from pyage_forams.solutions.environment import environment_factory, Environment3
 from pyage_forams.solutions.foram import create_forams
 from pyage_forams.solutions.genom import GenomFactory
 from pyage_forams.solutions.insolation_meter import StaticInsolation
-from pyage_forams.solutions.statistics import PlottingStatistics
+from pyage_forams.solutions.statistics import SimpleStatistics
 
 
 factory = GenomFactory(chambers_limit=5)
@@ -42,7 +42,7 @@ capacity_factor = lambda: 1.1
 initial_algae_probability = lambda: 0.1
 
 address_provider = address.SequenceAddressProvider
-stats = PlottingStatistics
+stats = SimpleStatistics
 
 ns_hostname = lambda: "127.0.0.1"
 pyro_daemon = Pyro4.Daemon()

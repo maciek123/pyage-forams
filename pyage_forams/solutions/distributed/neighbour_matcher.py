@@ -5,7 +5,7 @@ import Pyro4
 from pyage.core.agent.agent import AGENT
 from pyage.core.inject import InjectOptional, Inject
 from pyage_forams.solutions.agent.shadow_cell import ShadowCell
-from pyage_forams.solutions.distributed.requests.match import MatchRequest
+from pyage_forams.solutions.distributed.requests.match import Match2dRequest, Match3dRequest
 
 
 logger = logging.getLogger(__name__)
@@ -47,10 +47,18 @@ class Neighbour2dMatcher(NeighbourMatcher):
                             cell in cells]
             agent.join(remote_address, shadow_cells, side, remote_agent.get_steps())
             self.request_dispatcher.submit_request(
-                MatchRequest(remote_address, agent.environment.get_border_cells(side),
-                             AGENT + "." + agent.get_address(), opposite(side), agent.get_steps()))
+                Match2dRequest(remote_address, agent.environment.get_border_cells(side),
+                               AGENT + "." + agent.get_address(), opposite(side), agent.get_steps()))
         except Exception, e:
             logger.exception("could not join: %s", e.message)
+
+    def update(self, cells, mapping):
+        for cell in cells:
+            if cell.get_address() in mapping:
+                mapping[cell.get_address()].update(cell)
+            else:
+                logger.info("unsuccessful attempt to update cell with address %s", cell.get_address())
+
 
 class Neighbour3dMatcher(NeighbourMatcher):
     def _join(self, remote_agent, agent, side):
@@ -60,13 +68,22 @@ class Neighbour3dMatcher(NeighbourMatcher):
             rows = remote_agent.get_cells(opposite(side))
             logger.info("received rows: %s" % rows)
             shadow_cells = [[ShadowCell(cell.get_address(), cell.available_food(), cell.get_algae(), remote_address) for
-                            cell in cells] for cells in rows]
+                             cell in cells] for cells in rows]
             agent.join(remote_address, shadow_cells, side, remote_agent.get_steps())
             self.request_dispatcher.submit_request(
-                MatchRequest(remote_address, agent.environment.get_border_cells(side),
-                             AGENT + "." + agent.get_address(), opposite(side), agent.get_steps()))
+                Match3dRequest(remote_address, agent.environment.get_border_cells(side),
+                               AGENT + "." + agent.get_address(), opposite(side), agent.get_steps()))
         except Exception, e:
             logger.exception("could not join: %s", e.message)
+
+    def update(self, cells, mapping):
+        for row in cells:
+            for cell in row:
+                if cell.get_address() in mapping:
+                    mapping[cell.get_address()].update(cell)
+                else:
+                    logger.info("unsuccessful attempt to update cell with address %s", cell.get_address())
+
 
 def opposite(side):
     if side == "left":

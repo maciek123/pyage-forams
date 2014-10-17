@@ -84,6 +84,7 @@ class Environment2d(AbstractEnvironment):
         for (c1, c2) in zip(cells, self.get_border_cells(side)):
             c1.add_neighbour(c2)
             c2.add_neighbour(c1)
+        return {cell.get_address(): cell for cell in cells}
 
 
 class Environment3d(AbstractEnvironment):
@@ -148,9 +149,10 @@ class Environment3d(AbstractEnvironment):
 
     def join_cells(self, cells, side):
         for (r1, r2) in zip(cells, self.get_border_cells(side)):
-            for (c1, c2) in zip(r1, r2):  #TODO diagonal neighbours
+            for (c1, c2) in zip(r1, r2):  # TODO diagonal neighbours
                 c1.add_neighbour(c2)
                 c2.add_neighbour(c1)
+        return {cell.get_address(): cell for row in cells for cell in row }
 
 
 def environment_factory(regeneration_factor=0.1, clazz=Environment2d):
