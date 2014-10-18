@@ -89,7 +89,7 @@ class CsvStatistics(Statistics):
     def __init__(self, interval=1, filename=None):
         super(CsvStatistics, self).__init__()
         self.interval = interval
-        self.filename = "forams-%s.log" % datetime.now().strftime("%Y%m%d_%H%M%S") if filename is None else filename
+        self.filename = "forams-%s.csv" % datetime.now().strftime("%Y%m%d_%H%M%S") if filename is None else filename
         self.died_so_far = 0
         self.born_so_far = 0
 
@@ -129,13 +129,35 @@ class PsiStatistics(Statistics):
             self.counter += 1
             new_filename = '%s%s.psi' % (self.filename, '%06d' % self.counter)
             with open(new_filename, 'w') as f:
-                self._add_header(f)
-                self._add_data(f, step_count)
+                cells = self._get_nonempty_cells(step_count)
+                self._add_header(f, len(cells))
+                self._add_data(f, cells)
 
     def summarize(self, agents):
         pass
 
-    def _add_header(self, f):
+    def _get_nonempty_cells(self, step):
+        nonempty_cells = []
+
+        for x in range(len(self.environment.grid)):
+            for y in range(len(self.environment.grid[x])):
+                for z in range(len(self.environment.grid[x][y])):
+                    entry = self._get_entry(x, y, z, step)
+                    if entry:
+                        nonempty_cells.append(self._get_entry(x, y, z, step))
+
+        return nonempty_cells
+
+    def _get_entry(self, x, y, z, step):
+        cell = self.environment.grid[x][y][z]
+        if cell.is_empty() and cell.algae == 0:
+            return None
+        return map(float, [x, y, z] + [0 if cell.is_empty() else cell.foram.chambers,
+                                       0 if cell.is_empty() else cell.foram.energy,
+                                       cell.algae,
+                                       self.insolation_meter.get_insolation(cell, step)])
+
+    def _add_header(self, f, cells_count):
         f.write('# PSI Format 1.0\n#\n')
         self._add_column_names(f)
         self._add_column_symbols(f)
@@ -144,20 +166,11 @@ class PsiStatistics(Statistics):
                 '1.00 0.00 0.00\n'
                 '0.00 1.00 0.00\n'
                 '0.00 0.00 1.00\n\n'
-                % len(flatten(self.environment.grid)))
+                % cells_count)
 
-    def _add_data(self, f, step):
-        for x in range(len(self.environment.grid)):
-            for y in range(len(self.environment.grid[x])):
-                for z in range(len(self.environment.grid[x][y])):
-                    f.write(' '.join(map(str, self._get_entry(x, y, z, step))) + '\n')
-
-    def _get_entry(self, x, y, z, step):
-        cell = self.environment.grid[x][y][z]
-        return map(float, [x, y, z] + [0 if cell.is_empty() else cell.foram.chambers,
-                                       0 if cell.is_empty() else cell.foram.energy,
-                                       cell.algae,
-                                       self.insolation_meter.get_insolation(cell, step)])
+    def _add_data(self, f, cells):
+        for c in cells:
+            f.write(' '.join(map(str, c)) + '\n')
 
     def _add_column_names(self, f):
         names = (['# column[%d] = %s' % (i, n) for i, n in enumerate(self._column_names)])
