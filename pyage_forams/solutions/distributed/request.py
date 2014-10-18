@@ -25,7 +25,8 @@ class TakeAlgaeRequest(Request):
         self.cell_address = cell_address
 
     def execute(self, agent):
-        agent.take_algae(self.cell_address, self.algae)
+        if not self.algae == 0:
+            agent.take_algae(self.cell_address, self.algae)
 
 
 class RequestDispatcher(object):

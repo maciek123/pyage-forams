@@ -42,6 +42,10 @@ class RemoteForamAggregateAgent(Addressable):
         for update in self.updates:
             update()
 
+    def stop(self):
+        logger.info("finished")
+        sleep(5)  # to let neighbours finish
+
     def get_steps(self):
         return self._step
 
@@ -62,6 +66,7 @@ class RemoteForamAggregateAgent(Addressable):
         if len(self.joined) < len(self.neighbours):
             self.neighbour_matcher.match_neighbours(self)
         if len(self.joined) < len(self.neighbours):
+            sleep(2)
             return False
         for (neighbour, step) in self.joined.iteritems():
             if step < self._step - 1:  # TODO make configurable
@@ -98,7 +103,7 @@ class RemoteForamAggregateAgent(Addressable):
 
         def update():
             try:
-                logger.info("updating %s" % remote_address)
+                logger.info("updating shadow cels from: %s" % remote_address)
                 ns = Pyro4.locateNS(self.ns_hostname)
                 agent = Pyro4.Proxy(ns.lookup(remote_address))
                 cells = agent.get_cells(opposite(side))

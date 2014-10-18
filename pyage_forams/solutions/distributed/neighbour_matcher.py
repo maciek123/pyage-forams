@@ -27,10 +27,9 @@ class NeighbourMatcher(object):
         try:
             ns = Pyro4.locateNS(self.ns_hostname)
             agents = ns.list(AGENT + "." + address)
-            logger.warning(agents)
             return Pyro4.Proxy(agents.values().pop())
         except:
-            logging.exception("could not locate %s" % address)
+            logging.warning("could not locate %s" % address)
 
     def _join(self, neighbour, agent, side):
         raise NotImplementedError()

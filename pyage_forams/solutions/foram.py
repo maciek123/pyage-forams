@@ -10,6 +10,7 @@ from pyage_forams.utils import counted
 
 logger = logging.getLogger(__name__)
 
+
 class Foram(Addressable):
     @Inject("genom_factory", "reproduction_minimum", "movement_energy", "growth_minimum", "energy_need",
             "newborn_limit", "reproduction_probability", "growth_probability", "growth_cost_factor", "capacity_factor")
@@ -20,18 +21,15 @@ class Foram(Addressable):
             self.genom = self.genom_factory()
         else:
             self.genom = genom
-        self.steps = 0
         self.chambers = 1
         self.alive = True
         self.cell = None
 
     def step(self):
-        logger.info("step %s", self)
+        logger.debug("step %s", self)
         if not self.alive:
             logger.warn("called step on dead foram")
             return
-        logger.debug("foram! %s" % self.steps)  # TODO remove
-        self.steps += 1
         if self._should_die():
             self._die()
             return

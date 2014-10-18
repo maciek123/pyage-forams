@@ -32,7 +32,8 @@ class ShadowCell(object):
     def take_algae(self, demand):
         to_let = min(demand, self._algae)
         self._algae -= to_let
-        self.request_dispatcher.submit_request(TakeAlgaeRequest(self.agent_address, self.address, to_let))
+        if not to_let == 0:
+            self.request_dispatcher.submit_request(TakeAlgaeRequest(self.agent_address, self.address, to_let))
         return to_let
 
     def get_algae(self):
@@ -62,7 +63,7 @@ class ShadowCell(object):
             MigrateRequest(self.agent_address, self.address, foram))
 
     def update(self, cell):
-        logger.info("%s  updating! %s", self, cell)
+        logger.debug("%s  updating! %s", self, cell)
         self._algae = cell.get_algae()
         self.food = cell.available_food()
         self.empty = cell.is_empty()
