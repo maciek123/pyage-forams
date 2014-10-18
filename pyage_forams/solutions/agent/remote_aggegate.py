@@ -47,7 +47,7 @@ class RemoteForamAggregateAgent(Addressable):
 
     def _wait_for_neighbours(self):
         deadline = time() + 60
-        while not self._all_neighbours_ready():  # TODO timeout
+        while not self._all_neighbours_ready():
             if time() > deadline:
                 raise RuntimeError("Timeout in step %s waiting for neighbours: %s" % (self._step, self.joined))
             logger.info("waiting for neighbours %d %s" % (self._step, self.joined))
@@ -59,6 +59,8 @@ class RemoteForamAggregateAgent(Addressable):
             self.requests.pop().execute(self)
 
     def _all_neighbours_ready(self):
+        if len(self.joined) < len(self.neighbours):
+            self.neighbour_matcher.match_neighbours(self)
         if len(self.joined) < len(self.neighbours):
             return False
         for (neighbour, step) in self.joined.iteritems():
