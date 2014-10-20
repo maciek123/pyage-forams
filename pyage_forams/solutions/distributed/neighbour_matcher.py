@@ -1,9 +1,10 @@
+from collections import defaultdict
 import logging
 
 import Pyro4
 
 from pyage.core.agent.agent import AGENT
-from pyage.core.inject import InjectOptional, Inject
+from pyage.core.inject import Inject
 from pyage_forams.solutions.agent.shadow_cell import ShadowCell
 from pyage_forams.solutions.distributed.requests.match import Match2dRequest, Match3dRequest
 
@@ -12,27 +13,30 @@ logger = logging.getLogger(__name__)
 
 
 class NeighbourMatcher(object):
-    @Inject("request_dispatcher", "size", "neighbours")
+    @Inject("request_dispatcher", "size", "neighbours", 'ns_hostname')
     def __init__(self):
         super(NeighbourMatcher, self).__init__()
+        self._located_agents = defaultdict(self._locate_agent)
 
     def match_neighbours(self, agent):
         for (side, address) in self.neighbours.iteritems():
-            neighbour = self._locate_neighbour(address)
+            neighbour = self._locate_agent(address)
             if neighbour:
                 self._join(neighbour, agent, side)
 
-    @InjectOptional('ns_hostname')
     def _locate_neighbour(self, address):
         try:
-            ns = Pyro4.locateNS(self.ns_hostname)
-            agents = ns.list(AGENT + "." + address)
-            return Pyro4.Proxy(agents.values().pop())
+            self._locate_agent(address)
         except:
-            logging.warning("could not locate %s" % address)
+            logger.warning("could not locate %s" % address)
 
     def _join(self, neighbour, agent, side):
         raise NotImplementedError()
+
+    def _locate_agent(self, remote_address):
+        ns = Pyro4.locateNS(self.ns_hostname)
+        agent = Pyro4.Proxy(ns.lookup(remote_address))
+        return agent
 
 
 class Neighbour2dMatcher(NeighbourMatcher):
@@ -51,12 +55,16 @@ class Neighbour2dMatcher(NeighbourMatcher):
         except Exception, e:
             logger.exception("could not join: %s", e.message)
 
-    def update(self, cells, mapping):
+    def update(self, remote_address, side, mapping):
+        logger.info("updating shadow cels from: %s" % remote_address)
+        agent = self._locate_agent(remote_address)
+        cells = agent.get_cells(opposite(side))
         for cell in cells:
             if cell.get_address() in mapping:
                 mapping[cell.get_address()].update(cell)
             else:
                 logger.info("unsuccessful attempt to update cell with address %s", cell.get_address())
+        return agent.get_steps()
 
 
 class Neighbour3dMatcher(NeighbourMatcher):
@@ -75,13 +83,18 @@ class Neighbour3dMatcher(NeighbourMatcher):
         except Exception, e:
             logger.exception("could not join: %s", e.message)
 
-    def update(self, cells, mapping):
+
+    def update(self, remote_address, side, mapping):
+        logger.info("updating shadow cels from: %s" % remote_address)
+        agent = self._locate_agent(remote_address)
+        cells = agent.get_cells(opposite(side))
         for row in cells:
             for cell in row:
                 if cell.get_address() in mapping:
                     mapping[cell.get_address()].update(cell)
                 else:
                     logger.info("unsuccessful attempt to update cell with address %s", cell.get_address())
+        return agent.get_steps()
 
 
 def opposite(side):

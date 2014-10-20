@@ -98,17 +98,12 @@ class RemoteForamAggregateAgent(Addressable):
     def get_cells(self, side):
         return self.environment.get_border_cells(side)
 
-    def join(self, remote_address, shadow_cells, side, step):  # TODO 3d join
+    def join(self, remote_address, shadow_cells, side, step):
         mapping = self.environment.join_cells(shadow_cells, side)
 
         def update():
             try:
-                logger.info("updating shadow cels from: %s" % remote_address)
-                ns = Pyro4.locateNS(self.ns_hostname)
-                agent = Pyro4.Proxy(ns.lookup(remote_address))
-                cells = agent.get_cells(opposite(side))
-                self.neighbour_matcher.update(cells, mapping)
-                self.joined[remote_address] = agent.get_steps()
+                self.joined[remote_address] = self.neighbour_matcher.update(remote_address, side, mapping)
             except:
                 logging.exception("could not update")
 
