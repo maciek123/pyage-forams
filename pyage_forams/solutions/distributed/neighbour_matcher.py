@@ -20,15 +20,17 @@ class NeighbourMatcher(object):
 
     def match_neighbours(self, agent):
         for (side, address) in self.neighbours.iteritems():
-            neighbour = self._locate_agent(address)
+            neighbour = self._locate_neighbour(address)
             if neighbour:
                 self._join(neighbour, agent, side)
 
     def _locate_neighbour(self, address):
         try:
-            self._locate_agent(address)
+            ns = Pyro4.locateNS(self.ns_hostname)
+            agents = ns.list(AGENT + "." + address)
+            return Pyro4.Proxy(agents.values().pop())
         except:
-            logger.warning("could not locate %s" % address)
+            logging.warning("could not locate %s" % address)
 
     def _join(self, neighbour, agent, side):
         raise NotImplementedError()
