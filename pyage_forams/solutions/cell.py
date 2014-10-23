@@ -49,5 +49,9 @@ class Cell(Addressable):
     def get_neighbours(self):
         return self._neighbours
 
+    def to_shadow(self):
+        return self.get_address(), self.available_food(), self._algae, self.is_empty(), [cell.get_address() for cell in
+                                                                                         self.get_neighbours()]
+
     def __repr__(self):
         return "(%d, %s, %d)" % (self._algae, self.foram, self.available_food())

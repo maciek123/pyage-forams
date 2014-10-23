@@ -68,6 +68,9 @@ class Environment2d(AbstractEnvironment):
         else:
             raise KeyError("unknown side: %s" % side)
 
+    def get_shadows(self, side):
+        return [cell.to_shadow() for cell in self.get_border_cells(side)]
+
     def _get_left_cells(self):
         return [row[0] for row in self.grid]
 
@@ -129,6 +132,9 @@ class Environment3d(AbstractEnvironment):
         else:
             raise KeyError("unknown side: %s" % side)
 
+    def get_shadows(self, side):
+        return [[cell.to_shadow() for cell in row] for row in self.get_border_cells(side)]
+
     def _get_left_cells(self):
         return [row[0] for row in self.grid]
 
@@ -152,7 +158,7 @@ class Environment3d(AbstractEnvironment):
             for (c1, c2) in zip(r1, r2):  # TODO diagonal neighbours
                 c1.add_neighbour(c2)
                 c2.add_neighbour(c1)
-        return {cell.get_address(): cell for row in cells for cell in row }
+        return {cell.get_address(): cell for row in cells for cell in row}
 
 
 def environment_factory(regeneration_factor=0.1, clazz=Environment2d):

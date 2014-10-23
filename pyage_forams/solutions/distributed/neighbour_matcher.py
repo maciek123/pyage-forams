@@ -6,7 +6,7 @@ import Pyro4
 from pyage.core.agent.agent import AGENT
 from pyage.core.inject import Inject
 from pyage_forams.solutions.agent.shadow_cell import ShadowCell
-from pyage_forams.solutions.distributed.requests.match import Match2dRequest, Match3dRequest
+from pyage_forams.solutions.distributed.request import Request
 
 
 logger = logging.getLogger(__name__)
@@ -46,26 +46,37 @@ class Neighbour2dMatcher(NeighbourMatcher):
         try:
             remote_address = AGENT + "." + remote_agent.get_address()
             logger.info("%s matching with: %s" % (side, remote_address))
-            cells = remote_agent.get_cells(opposite(side))
-            logger.info("received cells: %s" % cells)
-            shadow_cells = [ShadowCell(cell.get_address(), cell.available_food(), cell.get_algae(), remote_address) for
-                            cell in cells]
+            shadows = remote_agent.get_shadows(opposite(side))
+            logger.debug("received shadows: %s" % shadows)
+            shadow_cells = self.create_shadow_cells(remote_address, shadows)
             agent.join(remote_address, shadow_cells, side, remote_agent.get_steps())
             self.request_dispatcher.submit_request(
-                Match2dRequest(remote_address, agent.environment.get_border_cells(side),
+                Match2dRequest(remote_address, agent.get_shadows(side),
                                AGENT + "." + agent.get_address(), opposite(side), agent.get_steps()))
         except Exception, e:
             logger.exception("could not join: %s", e.message)
 
+    @staticmethod
+    def create_shadow_cells(remote_address, shadows):
+        shadow_cells = {address: ShadowCell(address, available_food, algae, empty, remote_address) for
+                        (address, available_food, algae, empty, _) in shadows}
+        for (address, _, _, _, neighbours) in shadows:
+            for neighbour in neighbours:
+                try:
+                    shadow_cells[address].add_neighbour(shadow_cells[neighbour])
+                except KeyError:
+                    pass
+        return shadow_cells.values()
+
     def update(self, remote_address, side, mapping):
         logger.info("updating shadow cels from: %s" % remote_address)
         agent = self._locate_agent(remote_address)
-        cells = agent.get_cells(opposite(side))
-        for cell in cells:
-            if cell.get_address() in mapping:
-                mapping[cell.get_address()].update(cell)
+        shadows = agent.get_shadows(opposite(side))
+        for shadow in shadows:
+            if shadow[0] in mapping:
+                mapping[shadow[0]].update(shadow)
             else:
-                logger.info("unsuccessful attempt to update cell with address %s", cell.get_address())
+                logger.info("unsuccessful attempt to update cell with address %s", shadow.get_address())
         return agent.get_steps()
 
 
@@ -74,29 +85,70 @@ class Neighbour3dMatcher(NeighbourMatcher):
         try:
             remote_address = AGENT + "." + remote_agent.get_address()
             logger.info("%s matching with: %s" % (side, remote_address))
-            rows = remote_agent.get_cells(opposite(side))
-            logger.info("received rows: %s" % rows)
-            shadow_cells = [[ShadowCell(cell.get_address(), cell.available_food(), cell.get_algae(), remote_address) for
-                             cell in cells] for cells in rows]
+            shadows = remote_agent.get_shadows(opposite(side))
+            logger.debug("received shadows: %s" % shadows)
+            shadow_cells = self.create_shadow_cells(remote_address, shadows)
             agent.join(remote_address, shadow_cells, side, remote_agent.get_steps())
             self.request_dispatcher.submit_request(
-                Match3dRequest(remote_address, agent.environment.get_border_cells(side),
+                Match3dRequest(remote_address, agent.environment.get_shadows(side),
                                AGENT + "." + agent.get_address(), opposite(side), agent.get_steps()))
         except Exception, e:
             logger.exception("could not join: %s", e.message)
 
 
+    @staticmethod
+    def create_shadow_cells(remote_address, shadows):
+        shadow_cells = [[ShadowCell(address, available_food, algae, empty, remote_address) for
+                         (address, available_food, algae, empty, _) in row] for row in shadows]
+        mapping = {shadow_cell.get_address(): shadow_cell for row in shadow_cells for shadow_cell in row}
+        for row in shadows:
+            for (address, _, _, _, neighbours) in row:
+                for neighbour in neighbours:
+                    try:
+                        mapping[address].add_neighbour(mapping[neighbour])
+                    except KeyError:
+                        pass
+        return shadow_cells
+
     def update(self, remote_address, side, mapping):
         logger.info("updating shadow cels from: %s" % remote_address)
         agent = self._locate_agent(remote_address)
-        cells = agent.get_cells(opposite(side))
-        for row in cells:
-            for cell in row:
-                if cell.get_address() in mapping:
-                    mapping[cell.get_address()].update(cell)
+        shadows = agent.get_shadows(opposite(side))
+        for row in shadows:
+            for shadow in row:
+                if shadow[0] in mapping:
+                    mapping[shadow[0]].update(shadow)
                 else:
-                    logger.info("unsuccessful attempt to update cell with address %s", cell.get_address())
+                    logger.info("unsuccessful attempt to update cell with address %s", shadow.get_address())
         return agent.get_steps()
+
+
+class Match2dRequest(Request):
+    def __init__(self, agent_address, cells, remote_address, side, steps):
+        super(Match2dRequest, self).__init__(agent_address)
+        self.side = side
+        self.shadows = cells
+        self.remote_address = remote_address
+        self.steps = steps
+
+    def execute(self, agent):
+        logger.info("2d-matching with %s" % self.remote_address)
+        shadow_cells = Neighbour2dMatcher.create_shadow_cells(self.remote_address, self.shadows)
+        agent.join(self.remote_address, shadow_cells, self.side, self.steps)
+
+
+class Match3dRequest(Request):
+    def __init__(self, agent_address, shadows, remote_address, side, steps):
+        super(Match3dRequest, self).__init__(agent_address)
+        self.side = side
+        self.shadows = shadows
+        self.remote_address = remote_address
+        self.steps = steps
+
+    def execute(self, agent):
+        logger.info("3d-matching with %s" % self.remote_address)
+        shadow_cells = Neighbour3dMatcher.create_shadow_cells(self.remote_address, self.shadows)
+        agent.join(self.remote_address, shadow_cells, self.side, self.steps)
 
 
 def opposite(side):

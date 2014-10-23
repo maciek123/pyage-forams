@@ -10,13 +10,13 @@ logger = logging.getLogger(__name__)
 
 class ShadowCell(object):
     @Inject("request_dispatcher")
-    def __init__(self, address, available_food, algae, agent_address):
+    def __init__(self, address, available_food, algae, empty,agent_address):
         self.food = available_food
         self._algae = algae
         self.address = address
         self.agent_address = agent_address
-        self.empty = True
-        self.neighbours = []  # TODO get rid of this property
+        self.empty = empty
+        self._neighbours = []  # TODO get rid of this property
 
     def remove_foram(self):
         self.empty = True
@@ -52,21 +52,21 @@ class ShadowCell(object):
         return self.food
 
     def get_neighbours(self):
-        return self.neighbours
+        return self._neighbours
 
     def add_neighbour(self, neighbour):
-        self.neighbours.append(neighbour)
+        self._neighbours.append(neighbour)
 
     def export_foram(self, foram):
         logger.info("exporting %s to %s" % (foram, self.address))
         self.request_dispatcher.submit_request(
             MigrateRequest(self.agent_address, self.address, foram))
 
-    def update(self, cell):
-        logger.debug("%s  updating! %s", self, cell)
-        self._algae = cell.get_algae()
-        self.food = cell.available_food()
-        self.empty = cell.is_empty()
+    def update(self, (address, available_food, algae, empty, _)):
+        logger.debug("%s  updating! %s", self, (address, available_food, algae, _))
+        self._algae = algae
+        self.food = available_food
+        self.empty = empty
 
     def __repr__(self):
         return "(%d, ShadowCell, %d)" % (self._algae, self.available_food())

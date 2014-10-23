@@ -12,15 +12,13 @@ from pyage_forams.solutions.environment import environment_factory, Environment2
 from pyage_forams.solutions.foram import create_forams
 from pyage_forams.solutions.genom import GenomFactory
 from pyage_forams.solutions.insolation_meter import StaticInsolation
-from pyage_forams.solutions.statistics import PlottingStatistics
-
+from pyage_forams.conf.distributed2d.common import *
 
 factory = GenomFactory(chambers_limit=5)
 genom_factory = lambda: factory.generate
 forams = create_forams(1, initial_energy=5)
 agents = partial(create_remote_agent, "upperright")
 insolation_meter = StaticInsolation
-size = lambda: 5
 
 environment = environment_factory(regeneration_factor=0.1, clazz=Environment2d)
 neighbour_matcher = Neighbour2dMatcher
@@ -42,7 +40,6 @@ capacity_factor = lambda: 1.1
 initial_algae_probability = lambda: 0.1
 
 address_provider = address.SequenceAddressProvider
-stats = PlottingStatistics
 
 ns_hostname = lambda: "127.0.0.1"
 pyro_daemon = Pyro4.Daemon()

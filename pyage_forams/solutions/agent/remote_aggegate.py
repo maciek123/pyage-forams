@@ -53,6 +53,7 @@ class RemoteForamAggregateAgent(Addressable):
         deadline = time() + 60
         while not self._all_neighbours_ready():
             if time() > deadline:
+                logger.warning("timeout while waiting for neighbours")
                 raise RuntimeError("Timeout in step %s waiting for neighbours: %s" % (self._step, self.joined))
             logger.info("waiting for neighbours %d %s" % (self._step, self.joined))
             self._process_requests()
@@ -97,6 +98,9 @@ class RemoteForamAggregateAgent(Addressable):
 
     def get_cells(self, side):
         return self.environment.get_border_cells(side)
+
+    def get_shadows(self, side):
+        return self.environment.get_shadows(side)
 
     def join(self, remote_address, shadow_cells, side, step):
         mapping = self.environment.join_cells(shadow_cells, side)
