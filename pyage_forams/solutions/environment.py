@@ -84,9 +84,7 @@ class Environment2d(AbstractEnvironment):
         return [c for c in self.grid[-1]]
 
     def join_cells(self, cells, side):
-        for (c1, c2) in zip(cells, self.get_border_cells(side)):
-            c1.add_neighbour(c2)
-            c2.add_neighbour(c1)
+        _join_rows(cells, self.get_border_cells(side))
         return {cell.get_address(): cell for cell in cells}
 
 
@@ -155,10 +153,25 @@ class Environment3d(AbstractEnvironment):
 
     def join_cells(self, cells, side):
         for (r1, r2) in zip(cells, self.get_border_cells(side)):
-            for (c1, c2) in zip(r1, r2):  # TODO diagonal neighbours
-                c1.add_neighbour(c2)
-                c2.add_neighbour(c1)
+            _join_rows(r1, r2)
+        for (r1, r2) in zip(cells[1:], self.get_border_cells(side)[:-1]):
+            _join_rows(r1, r2)
+        for (r1, r2) in zip(cells[:-1], self.get_border_cells(side)[1:]):
+            _join_rows(r1, r2)
+
         return {cell.get_address(): cell for row in cells for cell in row}
+
+
+def _join_rows(r1, r2):
+    for (c1, c2) in zip(r1, r2):
+        c1.add_neighbour(c2)
+        c2.add_neighbour(c1)
+    for (c1, c2) in zip(r1[1:], r2[:-1]):
+        c1.add_neighbour(c2)
+        c2.add_neighbour(c1)
+    for (c1, c2) in zip(r1[:-1], r2[1:]):
+        c1.add_neighbour(c2)
+        c2.add_neighbour(c1)
 
 
 def environment_factory(regeneration_factor=0.1, clazz=Environment2d):

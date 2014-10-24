@@ -80,5 +80,6 @@ class TestEnvironment(TestCase):
         self.assertTrue(grid[2][2][1] in grid[1][1][1]._neighbours)
         self.assertTrue(grid[2][2][2] in grid[1][1][1]._neighbours)
 
+
     def _get_environments(self):
         return [Environment2d(0.2), Environment3d(0.2)]
