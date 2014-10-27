@@ -41,7 +41,6 @@ capacity_factor = lambda: 1.1
 initial_algae_probability = lambda: 0.03
 
 address_provider = address.SequenceAddressProvider
-stats = PlottingStatistics
 
 ns_hostname = lambda: "127.0.0.1"
 pyro_daemon = Pyro4.Daemon()

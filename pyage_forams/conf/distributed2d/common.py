@@ -1,5 +1,5 @@
-from pyage_forams.solutions.statistics import SimpleStatistics
+from pyage_forams.solutions.statistics import CsvStatistics
 
 size = lambda: 5
-stats = SimpleStatistics
+stats = CsvStatistics
 
