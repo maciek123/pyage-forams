@@ -54,7 +54,8 @@ class RemoteForamAggregateAgent(Addressable):
         while not self._all_neighbours_ready():
             if time() > deadline:
                 logger.warning("timeout while waiting for neighbours")
-                raise RuntimeError("Timeout in step %s waiting for neighbours: %s" % (self._step, self.joined))
+                raise RuntimeError("Timeout in step %s waiting for neighbours: connected: %s, expected: %s" % (
+                    self._step, self.joined, self.neighbours))
             logger.info("waiting for neighbours %d %s" % (self._step, self.joined))
             self._process_requests()
             sleep(random())  # TODO improve
@@ -93,7 +94,7 @@ class RemoteForamAggregateAgent(Addressable):
         self.forams[foram.get_address()] = foram
 
     def take_algae(self, cell_address, algae):
-        logger.warn("taking %f algae from %s" % (algae, cell_address))
+        logger.debug("taking %f algae from %s" % (algae, cell_address))
         self.environment.get_cell(cell_address).take_algae(algae)
 
     def get_cells(self, side):
@@ -103,6 +104,10 @@ class RemoteForamAggregateAgent(Addressable):
         return self.environment.get_shadows(side)
 
     def join(self, remote_address, shadow_cells, side, step):
+        if not remote_address.startswith(AGENT + "." + self.neighbours[side]):
+            logger.warning("Received request to %s-join with %s, expected neighbour on this side is %s" % (
+                side, remote_address, self.neighbours[side]))
+            return
         mapping = self.environment.join_cells(shadow_cells, side)
 
         def update():
