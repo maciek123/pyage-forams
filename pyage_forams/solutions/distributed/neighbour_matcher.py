@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class NeighbourMatcher(object):
-    @Inject("request_dispatcher", "size", "neighbours", 'ns_hostname')
+    @Inject("request_dispatcher", "neighbours", 'ns_hostname')
     def __init__(self):
         super(NeighbourMatcher, self).__init__()
         self._located_agents = defaultdict(self._locate_agent)
