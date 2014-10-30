@@ -1,7 +1,8 @@
 # coding=utf-8
 
 from pyage.core import address
-
+import Pyro4
+from pyage.core.migration import Pyro4Migration
 from pyage.core.stop_condition import StepLimitStopCondition
 from pyage_forams.solutions.environment import environment_factory, Environment3d
 from pyage_forams.solutions.foram import create_forams, create_agent
@@ -28,10 +29,13 @@ growth_probability = lambda: 0.5
 growth_cost_factor = lambda: 0.8
 capacity_factor = lambda: 1.1
 initial_algae_probability = lambda: 0.2
-
 environment = environment_factory(regeneration_factor=0.1, clazz=Environment3d)
-
 stop_condition = lambda: StepLimitStopCondition(500)
+stats = lambda: MultipleStatistics([CsvStatistics(), PsiStatistics()])
+
 
 address_provider = address.SequenceAddressProvider
-stats = lambda: MultipleStatistics([CsvStatistics(), PsiStatistics()])
+migration = Pyro4Migration
+ns_hostname = lambda: os.environ['NS_HOSTNAME']
+pyro_daemon = Pyro4.Daemon()
+daemon = lambda: pyro_daemon
