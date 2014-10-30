@@ -18,7 +18,7 @@ from pyage_forams.solutions.statistics import MultipleStatistics, PsiStatistics,
 factory = GenomFactory(chambers_limit=5)
 genom_factory = lambda: factory.generate
 forams = create_forams(1, initial_energy=5)
-agents = partial(create_remote_agent, "lowerleftback")
+agents = partial(create_remote_agent, "upperrightfront")
 insolation_meter = StaticInsolation
 size = lambda: 50
 
