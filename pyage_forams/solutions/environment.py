@@ -9,10 +9,21 @@ logger = logging.getLogger(__name__)
 
 
 class AbstractEnvironment(object):
-    @Inject("insolation_meter", "algae_limit", "initial_algae_probability")
+    @Inject("insolation_meter", "algae_limit", "initial_algae_probability", "size")
     def __init__(self, regeneration_factor):
         super(AbstractEnvironment, self).__init__()
         self.regeneration_factor = regeneration_factor
+        self._fix_size()
+
+    def _fix_size(self):
+        """
+        To assure backward compatibility, converts single-value size parameter to tuple
+        """
+        try:
+            self.size[0]
+        except:
+            logger.warning("Using single value as size parameter in config file is deprecated, use tuple instead")
+            self.size = (self.size, self.size, self.size)  # will work for both 2D and 3D case
 
     def add_foram(self, foram):
         choice(filter(lambda c: c.is_empty(), self.get_all_cells())).insert_foram(foram)
@@ -37,18 +48,18 @@ class AbstractEnvironment(object):
 
 
 class Environment2d(AbstractEnvironment):
-    @Inject("size")
     def __init__(self, regeneration_factor):
         super(Environment2d, self).__init__(regeneration_factor)
         self.grid = self._initialize_grid()
 
     def _initialize_grid(self):
-        grid = [[Cell(randint(0, 4) if random() < self.initial_algae_probability else 0) for _ in range(self.size)] for
-                _ in range(self.size)]
-        for i in range(self.size):
-            for j in range(self.size):
-                grid[i][j]._neighbours.extend([grid[x][y] for x in range(max(0, i - 1), min(self.size, i + 2)) for y in
-                                               range(max(0, j - 1), min(self.size, j + 2)) if x != i or y != j])
+        grid = [[Cell(randint(0, 4) if random() < self.initial_algae_probability else 0) for _ in range(self.size[1])]
+                for _ in range(self.size[0])]
+        for i in range(self.size[0]):
+            for j in range(self.size[1]):
+                grid[i][j]._neighbours.extend(
+                    [grid[x][y] for x in range(max(0, i - 1), min(self.size[0], i + 2)) for y in
+                     range(max(0, j - 1), min(self.size[1], j + 2)) if x != i or y != j])
         return grid
 
     def get_all_cells(self):
@@ -89,22 +100,21 @@ class Environment2d(AbstractEnvironment):
 
 
 class Environment3d(AbstractEnvironment):
-    @Inject("size")
     def __init__(self, regeneration_factor):
         super(Environment3d, self).__init__(regeneration_factor)
         self.grid = self._initialize_grid()
 
     def _initialize_grid(self):
         grid = [[[Cell(randint(1, 4) if random() < self.initial_algae_probability else 0)
-                  for _ in range(self.size)] for _ in range(self.size)] for _ in range(self.size)]
-        for i in range(self.size):
-            for j in range(self.size):
-                for k in range(self.size):
-                    grid[i][j][k].depth = self.size - k - 1
+                  for _ in range(self.size[2])] for _ in range(self.size[1])] for _ in range(self.size[0])]
+        for i in range(self.size[0]):
+            for j in range(self.size[1]):
+                for k in range(self.size[2]):
+                    grid[i][j][k].depth = self.size[0] - k - 1
                     grid[i][j][k]._neighbours.extend(
-                        [grid[x][y][z] for x in range(max(0, i - 1), min(self.size, i + 2)) for y in
-                         range(max(0, j - 1), min(self.size, j + 2)) for z in
-                         range(max(0, k - 1), min(self.size, k + 2)) if x != i or y != j or z != k])
+                        [grid[x][y][z] for x in range(max(0, i - 1), min(self.size[0], i + 2)) for y in
+                         range(max(0, j - 1), min(self.size[1], j + 2)) for z in
+                         range(max(0, k - 1), min(self.size[2], k + 2)) if x != i or y != j or z != k])
 
         return grid
 

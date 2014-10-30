@@ -7,7 +7,7 @@ setup(
     name="pyage-forams",
     description="Forams package for Pyage platform",
     packages=find_packages(),
-    version="1.0.0",
+    version="1.0.1",
     author="Maciej Kaziród",
     author_email="kazirod.maciej@gmail.com",
     requires=['matplotlib', 'pyage']
