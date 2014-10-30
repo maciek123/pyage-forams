@@ -10,16 +10,16 @@ logger = logging.getLogger(__name__)
 
 class ShadowCell(object):
     @Inject("request_dispatcher")
-    def __init__(self, address, available_food, algae, empty,agent_address):
+    def __init__(self, address, available_food, algae, full, agent_address):
         self.food = available_food
         self._algae = algae
         self.address = address
         self.agent_address = agent_address
-        self.empty = empty
+        self.full = full
         self._neighbours = []  # TODO get rid of this property
 
     def remove_foram(self):
-        self.empty = True
+        pass
 
     def insert_foram(self, foram):
         if hasattr(foram, "parent"):
@@ -27,7 +27,6 @@ class ShadowCell(object):
         else:
             logger.info("%s has no parent", foram)
         self.export_foram(foram)
-        self.empty = False
 
     def take_algae(self, demand):
         to_let = min(demand, self._algae)
@@ -42,8 +41,8 @@ class ShadowCell(object):
     def add_algae(self, algae):
         self._algae += algae
 
-    def is_empty(self):
-        return self.empty
+    def is_full(self):
+        return self.full
 
     def get_address(self):
         return self.address
@@ -62,11 +61,11 @@ class ShadowCell(object):
         self.request_dispatcher.submit_request(
             MigrateRequest(self.agent_address, self.address, foram))
 
-    def update(self, (address, available_food, algae, empty, _)):
+    def update(self, (address, available_food, algae, full, _)):
         logger.debug("%s  updating! %s", self, (address, available_food, algae, _))
         self._algae = algae
         self.food = available_food
-        self.empty = empty
+        self.full = full
 
     def __repr__(self):
         return "(%d, ShadowCell, %d)" % (self._algae, self.available_food())

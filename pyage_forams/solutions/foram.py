@@ -71,7 +71,7 @@ class Foram(Addressable):
     @counted
     def _reproduce(self):
         logger.debug("%s is reproducing" % self)
-        empty_neighbours = filter(lambda c: c.is_empty(), self.cell.get_neighbours())
+        empty_neighbours = filter(lambda c: not c.is_full(), self.cell.get_neighbours())
         if not empty_neighbours:
             logger.debug("%s has no space to reproduce" % self)
             return
@@ -93,7 +93,7 @@ class Foram(Addressable):
 
     def _move(self):
         try:
-            empty_neighbours = filter(lambda c: c.is_empty(), self.cell.get_neighbours())
+            empty_neighbours = filter(lambda c: not c.is_full(), self.cell.get_neighbours())
             if not empty_neighbours:
                 logger.warning("%s has nowhere to move" % self)
                 return
@@ -102,7 +102,7 @@ class Foram(Addressable):
                        key=lambda c: random() + c.available_food() + sum(
                            s.available_food() for s in c.get_neighbours()))
             if cell:
-                cell.insert_foram(self.cell.remove_foram())
+                cell.insert_foram(self.cell.remove_foram(self))
                 self.energy -= self.movement_energy
                 logger.debug("%s moved" % self)
         except:
@@ -116,7 +116,7 @@ class Foram(Addressable):
         logger.debug("%s died" % self)
         self.alive = False
         self.parent.remove_foram(self.get_address())
-        self.cell.remove_foram()
+        self.cell.remove_foram(self)
 
     def _can_create_chamber(self):
         return self.energy > self.growth_minimum and self.genom.chambers_limit > self.chambers \

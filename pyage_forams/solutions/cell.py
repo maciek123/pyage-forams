@@ -7,27 +7,27 @@ logger = logging.getLogger(__name__)
 
 
 class Cell(Addressable):
-    def __init__(self, algae=0):
+    def __init__(self, algae=0, capacity=1):
         super(Cell, self).__init__()
+        self.capacity = capacity
         self._algae = algae
-        self.foram = None
+        self.forams = set()
         self._neighbours = []
 
     def insert_foram(self, foram):
         logger.info("inserting %s into %s" % (foram, self))
-        if not self.is_empty():
-            raise ValueError("cannot insert foram to already occupied cell")
-        self.foram = foram
+        if self.is_full():
+            raise ValueError("cannot insert foram to full cell")
+        self.forams.add(foram)
         foram.cell = self
 
-    def remove_foram(self):
-        foram = self.foram
+    def remove_foram(self, foram):
+        self.forams.remove(foram)
         foram.cell = None
-        self.foram = None
         return foram
 
-    def is_empty(self):
-        return self.foram is None
+    def is_full(self):
+        return len(self.forams) >= self.capacity
 
     def take_algae(self, demand):
         to_let = min(demand, self._algae)
@@ -50,8 +50,8 @@ class Cell(Addressable):
         return self._neighbours
 
     def to_shadow(self):
-        return self.get_address(), self.available_food(), self._algae, self.is_empty(), [cell.get_address() for cell in
-                                                                                         self.get_neighbours()]
+        return self.get_address(), self.available_food(), self._algae, self.is_full(), [cell.get_address() for cell in
+                                                                                        self.get_neighbours()]
 
     def __repr__(self):
-        return "(%d, %s, %d)" % (self._algae, self.foram, self.available_food())
+        return "(%d, %s, %d)" % (self._algae, self.forams, self.available_food())

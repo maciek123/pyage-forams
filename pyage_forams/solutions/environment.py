@@ -26,7 +26,7 @@ class AbstractEnvironment(object):
             self.size = (self.size, self.size, self.size)  # will work for both 2D and 3D case
 
     def add_foram(self, foram):
-        choice(filter(lambda c: c.is_empty(), self.get_all_cells())).insert_foram(foram)
+        choice(filter(lambda c: not c.is_full(), self.get_all_cells())).insert_foram(foram)
 
     def tick(self, step):
         for cell in self.get_all_cells():
