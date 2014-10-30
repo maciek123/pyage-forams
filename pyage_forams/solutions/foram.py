@@ -30,11 +30,11 @@ class Foram(Addressable):
         if not self.alive:
             logger.warn("called step on dead foram")
             return
+        if self._eat() <= 0:
+            self._move()
         if self._should_die():
             self._die()
             return
-        if self._eat() <= 0:
-            self._move()
         if self._can_reproduce():
             self._reproduce()
         if self._can_create_chamber():
