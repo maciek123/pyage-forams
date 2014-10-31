@@ -78,8 +78,8 @@ class PsiStatistics(Statistics):
         cell = self.environment.grid[x][y][z]
         if cell.is_empty() and cell._algae == 0:
             return None
-        return map(float, [x, y, z] + [0 if cell.is_empty() else cell.foram.chambers,
-                                       0 if cell.is_empty() else cell.foram.energy,
+        return map(float, [x, y, z] + [0 if cell.is_empty() else next(iter(cell.forams)).chambers,
+                                       0 if cell.is_empty() else next(iter(cell.forams)).energy,
                                        cell._algae,
                                        self.insolation_meter.get_insolation(cell, step)])
 

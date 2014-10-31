@@ -32,7 +32,7 @@ class RemoteForamAggregateAgent(Addressable):
         self._step += 1
         self._wait_for_neighbours()
         for foram in self.forams.values():
-            if foram.cell is None or foram.cell.foram is None:
+            if foram.cell is None or foram not in foram.cell.forams:
                 logger.warning("something went wrong %s" % foram)
             foram.step()
         self.environment.tick(self._step)

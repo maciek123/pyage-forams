@@ -37,6 +37,7 @@ initial_algae_probability = lambda: 0.2
 environment = environment_factory(regeneration_factor=0.1, clazz=Environment3d)
 stop_condition = lambda: StepLimitStopCondition(500)
 stats = lambda: MultipleStatistics([CsvStatistics(), PsiStatistics()])
+cell_capacity = lambda: 1
 
 
 

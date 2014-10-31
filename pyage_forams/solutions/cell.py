@@ -8,11 +8,11 @@ logger = logging.getLogger(__name__)
 
 
 class Cell(Addressable):
-    @Inject("algae_limit")
-    def __init__(self, algae=0, capacity=1):
+    @Inject("algae_limit", "cell_capacity")
+    def __init__(self, algae=0):
         super(Cell, self).__init__()
         self._algae = algae
-        self.foram = None
+        self.forams = set()
         self._neighbours = []
 
     def insert_foram(self, foram):
@@ -27,8 +27,11 @@ class Cell(Addressable):
         foram.cell = None
         return foram
 
+    def is_empty(self):
+        return not self.forams
+
     def is_full(self):
-        return len(self.forams) >= self.capacity
+        return len(self.forams) >= self.cell_capacity
 
     def take_algae(self, demand):
         to_let = min(demand, self._algae)

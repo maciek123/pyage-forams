@@ -11,7 +11,7 @@ genom_factory = lambda: factory.generate
 insolation_meter = StaticInsolation
 address_provider = address.SequenceAddressProvider
 size = lambda: 3
-
+cell_capacity = lambda: 1
 
 reproduction_minimum = lambda: 10
 movement_energy = lambda: 0.25
