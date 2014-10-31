@@ -1,4 +1,5 @@
 import logging
+from pyage.core.inject import Inject
 
 from pyage.core.address import Addressable
 
@@ -7,6 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 class Cell(Addressable):
+    @Inject("algae_limit")
     def __init__(self, algae=0):
         super(Cell, self).__init__()
         self._algae = algae
@@ -39,6 +41,7 @@ class Cell(Addressable):
 
     def add_algae(self, algae):
         self._algae += algae
+        self._algae = max(self._algae, self.algae_limit)
 
     def available_food(self):
         return self._algae + sum(map(lambda c: c.get_algae(), self._neighbours))
