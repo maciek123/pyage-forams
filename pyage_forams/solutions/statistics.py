@@ -150,11 +150,11 @@ class PsiStatistics(Statistics):
 
     def _get_entry(self, x, y, z, step):
         cell = self.environment.grid[x][y][z]
-        if cell.is_empty() and cell.algae == 0:
+        if cell.is_empty() and cell._algae == 0:
             return None
         return map(float, [x, y, z] + [0 if cell.is_empty() else cell.foram.chambers,
                                        0 if cell.is_empty() else cell.foram.energy,
-                                       cell.algae,
+                                       cell._algae,
                                        self.insolation_meter.get_insolation(cell, step)])
 
     def _add_header(self, f, cells_count):

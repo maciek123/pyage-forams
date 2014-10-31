@@ -30,11 +30,11 @@ class Foram(Addressable):
         if not self.alive:
             logger.warn("called step on dead foram")
             return
+        if self._eat() <= 0:
+            self._move()
         if self._should_die():
             self._die()
             return
-        if self._eat() <= 0:
-            self._move()
         if self._can_reproduce():
             self._reproduce()
         if self._can_create_chamber():
@@ -93,6 +93,9 @@ class Foram(Addressable):
 
     def _move(self):
         try:
+            if self.energy < self.movement_energy:
+                logger.warning("%s has no energy to move" % self)
+                return
             empty_neighbours = filter(lambda c: not c.is_full(), self.cell.get_neighbours())
             if not empty_neighbours:
                 logger.warning("%s has nowhere to move" % self)
