@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 class AbstractEnvironment(object):
-    @Inject("insolation_meter", "initial_algae_probability", "size")
+    @Inject("insolation_meter", "initial_algae_probability", "size", "algae_growth_probability")
     def __init__(self, regeneration_factor):
         super(AbstractEnvironment, self).__init__()
         self.regeneration_factor = regeneration_factor
@@ -32,7 +32,7 @@ class AbstractEnvironment(object):
         for cell in self.get_all_cells():
             if 0 < cell.get_algae():
                 cell.add_algae(self.regeneration_factor + self.insolation_meter.get_insolation(cell, step))
-        while random() > 0.7:
+        while random() < self.algae_growth_probability:
             try:
                 choice(filter(lambda c: c.is_empty(), self.get_all_cells())).add_algae(random() * 2)
             except:

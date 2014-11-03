@@ -12,6 +12,7 @@ insolation_meter = StaticInsolation
 address_provider = address.SequenceAddressProvider
 size = lambda: 3
 cell_capacity = lambda: 1
+algae_growth_probability = lambda: 0.3
 
 reproduction_minimum = lambda: 10
 movement_energy = lambda: 0.25
