@@ -162,3 +162,26 @@ class TestDistributed(TestCase):
         self.assertTrue(cells[0][2] in environment.grid[1][2][3].get_neighbours())
         self.assertTrue(cells[1][3] in environment.grid[1][2][3].get_neighbours())
         self.assertTrue(cells[1][2] in environment.grid[1][2][3].get_neighbours())
+
+    def test_2d_multiple_joining(self):
+        environment = Environment2d(0.2)
+        right_cells = [Cell() for _ in range(2)]
+        environment.join_cells(right_cells, "right")
+        upper_cells = [Cell() for _ in range(3)]
+        environment.join_cells(upper_cells, "upper")
+
+        self.assertTrue(right_cells[0] in environment.grid[0][2].get_neighbours())
+        self.assertTrue(right_cells[1] in environment.grid[0][2].get_neighbours())
+
+        self.assertTrue(right_cells[0] in environment.grid[1][2].get_neighbours())
+        self.assertTrue(right_cells[1] in environment.grid[1][2].get_neighbours())
+
+        self.assertTrue(upper_cells[0] in environment.grid[0][0].get_neighbours())
+        self.assertTrue(upper_cells[0] in environment.grid[0][1].get_neighbours())
+
+        self.assertTrue(upper_cells[1] in environment.grid[0][0].get_neighbours())
+        self.assertTrue(upper_cells[1] in environment.grid[0][1].get_neighbours())
+        self.assertTrue(upper_cells[1] in environment.grid[0][2].get_neighbours())
+
+        self.assertTrue(upper_cells[2] in environment.grid[0][1].get_neighbours())
+        self.assertTrue(upper_cells[2] in environment.grid[0][2].get_neighbours())
