@@ -44,9 +44,9 @@ class PsiStatistics(Statistics):
     def __init__(self, interval=1, filename=None):
         super(PsiStatistics, self).__init__()
         self.interval = interval
-        self._column_names = ['"x"', '"y"', '"z"', '"Foram"', '"Energy"', '"Algae"', '"Insolation"']
-        self._column_symbols = ['"F"', '"E"', '"A"', '"I"']
-        self._column_types = ['float', 'float', 'float', 'float']
+        self._column_names = ['"x"', '"y"', '"z"', '"Forams"', '"Algae"', '"Insolation"']
+        self._column_symbols = ['"F"', '"A"', '"I"']
+        self._column_types = ['float', 'float', 'float']
         self.filename = "forams-%s" % datetime.now().strftime("%Y%m%d_%H%M%S") if filename is None else filename
         self.counter = 0
 
@@ -76,10 +76,9 @@ class PsiStatistics(Statistics):
 
     def _get_entry(self, x, y, z, step):
         cell = self.environment.grid[x][y][z]
-        if cell.is_empty() and cell._algae == 0:
+        if cell.is_empty() and cell.get_algae() == 0:
             return None
-        return map(float, [x, y, z] + [0 if cell.is_empty() else next(iter(cell.forams)).chambers,
-                                       0 if cell.is_empty() else next(iter(cell.forams)).energy,
+        return map(float, [x, y, z] + [len(cell.forams),
                                        cell._algae,
                                        self.insolation_meter.get_insolation(cell, step)])
 
