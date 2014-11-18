@@ -6,7 +6,7 @@ import Pyro4
 
 from pyage.core.address import Addressable
 from pyage.core.agent.agent import AGENT
-from pyage.core.inject import Inject
+from pyage.core.inject import Inject, InjectWithDefault
 from pyage_forams.solutions.distributed.neighbour_matcher import opposite
 
 
@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 class RemoteForamAggregateAgent(Addressable):
     @Inject("forams", "environment", "neighbour_matcher", "request_dispatcher", "ns_hostname", "neighbours")
+    @InjectWithDefault(("allowed_offset", 1))
     def __init__(self, name=None):
         if name is not None:
             self.name = name
@@ -71,7 +72,7 @@ class RemoteForamAggregateAgent(Addressable):
             sleep(2)
             return False
         for (neighbour, step) in self.joined.iteritems():
-            if step < self._step - 1:  # TODO make configurable
+            if step < self._step - self.allowed_offset:
                 return False
         return True
 
