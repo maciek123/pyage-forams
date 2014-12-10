@@ -43,7 +43,7 @@ class Cell(Addressable):
 
     def add_algae(self, algae):
         self._algae += algae
-        self._algae = max(self._algae, self.algae_limit)
+        self._algae = min(self._algae, self.algae_limit)
 
     def available_food(self):
         return self._algae + sum(map(lambda c: c.get_algae(), self._neighbours))
