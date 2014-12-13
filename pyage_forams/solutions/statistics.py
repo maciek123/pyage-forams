@@ -44,9 +44,11 @@ class PsiStatistics(Statistics):
     def __init__(self, interval=1, filename=None):
         super(PsiStatistics, self).__init__()
         self.interval = interval
-        self._column_names = ['"x"', '"y"', '"z"', '"Forams"', '"Algae"', '"Insolation"']
-        self._column_symbols = ['"F"', '"A"', '"I"']
-        self._column_types = ['float', 'float', 'float']
+        self._column_names = ['"x"', '"y"', '"z"', '"Forams"', '"Algae"', '"Insolation"', '"Energy"', '"Chambers"']
+        self._column_symbols = ['"F"', '"A"', '"I"', '"E"', '"C"']
+        self._column_types = ['float', 'float', 'float', 'float', 'float']
+        self._shifts = [(-0.25, -0.25, -0.25), (-0.25, 0.25, -0.25), (0.25, -0.25, -0.25), (0.25, 0.25, -0.25),
+                        (-0.25, -0.25, 0.25), (-0.25, 0.25, 0.25), (0.25, -0.25, 0.25), (0.25, 0.25, 0.25)]
         self.filename = "forams-%s" % datetime.now().strftime("%Y%m%d_%H%M%S") if filename is None else filename
         self.counter = 0
 
@@ -70,7 +72,7 @@ class PsiStatistics(Statistics):
                 for z in range(len(self.environment.grid[x][y])):
                     entry = self._get_entry(x, y, z, step)
                     if entry:
-                        nonempty_cells.append(self._get_entry(x, y, z, step))
+                        nonempty_cells.extend(entry)
 
         return nonempty_cells
 
@@ -78,9 +80,27 @@ class PsiStatistics(Statistics):
         cell = self.environment.grid[x][y][z]
         if cell.is_empty() and cell.get_algae() == 0:
             return None
-        return map(float, [x, y, z] + [len(cell.forams),
-                                       cell._algae,
-                                       self.insolation_meter.get_insolation(cell, step)])
+        if len(cell.forams) == 1:
+            foram = next(iter(cell.forams))
+            return [map(float, [x, y, z] + [1,
+                                            cell.get_algae(),
+                                            self.insolation_meter.get_insolation(cell, step),
+                                            foram.energy,
+                                            foram.chambers])]
+        if len(cell.forams) <= 8:
+            entries = []
+            for i, f in enumerate(cell.forams):
+                shift = self._shifts[i]
+                entries.append(map(float, [x + shift[0], y + shift[1], z + shift[2]] +
+                                   [1,
+                                    cell.get_algae(),
+                                    self.insolation_meter.get_insolation(cell, step),
+                                    f.energy,
+                                    f.chambers]))
+            return entries
+        return [map(float, [x, y, z] + [len(cell.forams),
+                                        cell.get_algae(),
+                                        self.insolation_meter.get_insolation(cell, step)])]
 
     def _add_header(self, f, cells_count):
         f.write('# PSI Format 1.0\n#\n')
