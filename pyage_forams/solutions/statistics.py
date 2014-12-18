@@ -20,6 +20,9 @@ class CsvStatistics(Statistics):
         self.born_so_far = 0
 
     def update(self, step_count, agents):
+        if step_count == 1:
+            with open(self.filename, 'ab') as f:
+                print(("No, Forams, ChambersAvg, Die, New"), file=f)
         if step_count % self.interval == 0:
             with open(self.filename, 'ab') as f:
                 entry = self._get_entry(agents, step_count)
@@ -33,7 +36,7 @@ class CsvStatistics(Statistics):
     def _get_entry(self, agents, step_count):
         forams_count = len(agents[0].forams)
         entry = [step_count, forams_count,
-                 sum(f.chambers for f in agents[0].forams.values()),
+                 sum(f.chambers for f in agents[0].forams.values())/forams_count,
                  Foram._die.called - self.died_so_far,
                  Foram._create_child.called - self.born_so_far]
         return entry
