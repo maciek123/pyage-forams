@@ -35,10 +35,13 @@ class CsvStatistics(Statistics):
 
     def _get_entry(self, agents, step_count):
         forams_count = len(agents[0].forams)
-        entry = [step_count, forams_count,
+        if forams_count > 0:
+            entry = [step_count, forams_count,
                  sum(f.chambers for f in agents[0].forams.values())/forams_count,
                  Foram._die.called - self.died_so_far,
                  Foram._create_child.called - self.born_so_far]
+        if forams_count < 1:
+            entry = [step_count, 0, 0, 0, 0]
         return entry
 
 
@@ -83,6 +86,12 @@ class PsiStatistics(Statistics):
         cell = self.environment.grid[x][y][z]
         if cell.is_empty() and cell.get_algae() == 0:
             return None
+        if cell.is_empty() and cell.get_algae() > 0:
+            return [map(float, [x, y, z] + [0,
+                                            cell.get_algae(),
+                                            self.insolation_meter.get_insolation(cell, step),
+                                            0,
+                                            0])]
         if len(cell.forams) == 1:
             foram = next(iter(cell.forams))
             return [map(float, [x, y, z] + [1,
