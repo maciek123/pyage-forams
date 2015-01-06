@@ -22,7 +22,7 @@ class CsvStatistics(Statistics):
     def update(self, step_count, agents):
         if step_count == 1:
             with open(self.filename, 'ab') as f:
-                print(("No, Forams, ChambersAvg, Die, New"), file=f)
+                print(("No, Forams, ChambersAvg, AlgaeSum, Die, New"), file=f)
         if step_count % self.interval == 0:
             with open(self.filename, 'ab') as f:
                 entry = self._get_entry(agents, step_count)
@@ -37,12 +37,16 @@ class CsvStatistics(Statistics):
         forams_count = len(agents[0].forams)
         if forams_count > 0:
             entry = [step_count, forams_count,
-                 sum(f.chambers for f in agents[0].forams.values())/forams_count,
-                 Foram._die.called - self.died_so_far,
-                 Foram._create_child.called - self.born_so_far]
+                     sum(f.chambers for f in agents[0].forams.values()) / forams_count,
+                     self._get_algae_sum(),
+                     Foram._die.called - self.died_so_far,
+                     Foram._create_child.called - self.born_so_far]
         if forams_count < 1:
-            entry = [step_count, 0, 0, 0, 0]
+            entry = [step_count, 0, self._get_algae_sum(), 0, 0, 0]
         return entry
+
+    def _get_algae_sum(self):
+        return sum(c.get_algae() for c in self.environment.get_all_cells())
 
 
 class PsiStatistics(Statistics):
