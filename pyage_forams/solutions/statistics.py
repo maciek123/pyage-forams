@@ -1,6 +1,7 @@
 from __future__ import print_function
 from datetime import datetime
 import logging
+import os
 
 from pyage.core.inject import Inject
 from pyage.core.statistics import Statistics
@@ -60,6 +61,8 @@ class PsiStatistics(Statistics):
         self._shifts = [(-0.25, -0.25, -0.25), (-0.25, 0.25, -0.25), (0.25, -0.25, -0.25), (0.25, 0.25, -0.25),
                         (-0.25, -0.25, 0.25), (-0.25, 0.25, 0.25), (0.25, -0.25, 0.25), (0.25, 0.25, 0.25)]
         self.filename = "forams-%s" % datetime.now().strftime("%Y%m%d_%H%M%S") if filename is None else filename
+        os.mkdir(self.filename)
+        self.filename = os.path.join(self.filename, self.filename)
         self.counter = 0
 
     def update(self, step_count, agents):
