@@ -39,7 +39,7 @@ class CsvStatistics(Statistics):
         if forams_count > 0:
             entry = [step_count, forams_count,
                      sum(f.chambers for f in agents[0].forams.values()) / forams_count,
-                     self._get_algae_sum(),
+                     self._get_algae_sum()/20.0,
                      Foram._die.called - self.died_so_far,
                      Foram._create_child.called - self.born_so_far]
         if forams_count < 1:
@@ -60,7 +60,7 @@ class PsiStatistics(Statistics):
         self._column_types = ['float', 'float', 'float', 'float', 'float']
         self._shifts = [(-0.25, -0.25, -0.25), (-0.25, 0.25, -0.25), (0.25, -0.25, -0.25), (0.25, 0.25, -0.25),
                         (-0.25, -0.25, 0.25), (-0.25, 0.25, 0.25), (0.25, -0.25, 0.25), (0.25, 0.25, 0.25)]
-        self.filename = "forams-%s" % datetime.now().strftime("%Y%m%d_%H%M%S") if filename is None else filename
+        self.filename = "foramsPSI-%s" % datetime.now().strftime("%Y%m%d_%H%M%S") if filename is None else filename
         os.mkdir(self.filename)
         self.filename = os.path.join(self.filename, self.filename)
         self.counter = 0
@@ -147,6 +147,94 @@ class PsiStatistics(Statistics):
     def _add_column_types(self, f):
         types = ['# type[%d] = %s' % (i + 3, t) for i, t in enumerate(self._column_types)]
         f.write('\n'.join(types) + '\n')
+
+
+class ParaviewStatistics(Statistics):
+    extension = 'vtk'
+    particles = ['Forams', 'Algae', 'Insolation', 'Energy', 'Chambers']
+
+    @Inject("environment", "insolation_meter", "stop_condition")
+    def __init__(self, interval=1, filename=None):
+        super(ParaviewStatistics, self).__init__()
+        self.interval = interval
+        self._shifts = [(-0.25, -0.25, -0.25), (-0.25, 0.25, -0.25), (0.25, -0.25, -0.25), (0.25, 0.25, -0.25),
+                        (-0.25, -0.25, 0.25), (-0.25, 0.25, 0.25), (0.25, -0.25, 0.25), (0.25, 0.25, 0.25)]
+        self.filename = "foramsVTK-%s" % datetime.now().strftime("%Y%m%d_%H%M%S") if filename is None else filename
+        os.mkdir(self.filename)
+        self.filename = os.path.join(self.filename, self.filename)
+        self.counter = 0
+
+    def update(self, step_count, agents):
+        if step_count % self.interval == 0:
+            new_filename = '%s.%s.%s' % (self.filename, self.extension, self.counter)
+            self.counter += 1
+            with open(new_filename, 'w') as f:
+                cells = self._get_nonempty_cells(step_count)
+                self._add_header(f, len(cells))
+                self._add_data(f, cells)
+
+    def summarize(self, agents):
+        pass
+
+    def _get_nonempty_cells(self, step):
+        nonempty_cells = []
+
+        for x in range(len(self.environment.grid)):
+            for y in range(len(self.environment.grid[x])):
+                for z in range(len(self.environment.grid[x][y])):
+                    entry = self._get_entry(x, y, z, step)
+                    if entry:
+                        nonempty_cells.extend(entry)
+
+        return nonempty_cells
+
+    def _get_entry(self, x, y, z, step):
+        cell = self.environment.grid[x][y][z]
+        if cell.is_empty() and cell.get_algae() == 0:
+            return None
+        if cell.is_empty() and cell.get_algae() > 0:
+            return [map(float, [x, y, z] + [0,
+                                            cell.get_algae(),
+                                            self.insolation_meter.get_insolation(cell, step),
+                                            0,
+                                            0])]
+        if len(cell.forams) == 1:
+            foram = next(iter(cell.forams))
+            return [map(float, [x, y, z] + [1,
+                                            cell.get_algae(),
+                                            self.insolation_meter.get_insolation(cell, step),
+                                            foram.energy,
+                                            foram.chambers])]
+        if len(cell.forams) <= 8:
+            entries = []
+            for i, f in enumerate(cell.forams):
+                shift = self._shifts[i]
+                entries.append(map(float, [x + shift[0], y + shift[1], z + shift[2]] +
+                                   [1,
+                                    cell.get_algae(),
+                                    self.insolation_meter.get_insolation(cell, step),
+                                    f.energy,
+                                    f.chambers]))
+            return entries
+        return [map(float, [x, y, z] + [len(cell.forams),
+                                        cell.get_algae(),
+                                        self.insolation_meter.get_insolation(cell, step)])]
+
+    def _add_header(self, f, cells_count):
+        f.write('# vtk DataFile Version 2.0\nvtk\n'
+                'ASCII\n'
+                'DATASET POLYDATA\n'
+                'POINTS %s float\n' % cells_count)
+
+    def _add_data(self, f, cells):
+        for c in cells:
+            f.write(' '.join(map(str, c[:3])) + '\n')
+
+        f.write('\nPOINT_DATA %s\n' % len(cells))
+        for index, particle in enumerate(self.particles):
+            f.write('SCALARS %s float 1\nLOOKUP_TABLE default\n' % particle)
+            f.write(' '.join(str(c[3+index]) for c in cells))
+            f.write('\n\n')
 
 
 class SimpleStatistics(Statistics):
